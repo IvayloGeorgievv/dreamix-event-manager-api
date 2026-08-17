@@ -1,0 +1,62 @@
+package org.example.eventmanagementapi.controller;
+
+import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.example.eventmanagementapi.dto.customer.CustomerRequestDTO;
+import org.example.eventmanagementapi.dto.customer.CustomerResponseDTO;
+import org.example.eventmanagementapi.service.CustomerService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/customers")
+@RequiredArgsConstructor
+public class CustomerController {
+
+    private final CustomerService customerService;
+
+    @PostMapping
+    public ResponseEntity<CustomerResponseDTO> registerCustomer(@Valid @RequestBody CustomerRequestDTO request) {
+        CustomerResponseDTO customer = customerService.registerCustomer(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(customer);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CustomerResponseDTO> getCustomerById(@PathVariable UUID id) {
+        return ResponseEntity.ok(customerService.getCustomerById(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<CustomerResponseDTO>> getAllCustomers(
+            @RequestParam(name = "includeDeleted", defaultValue = "false") boolean includeDeleted) {
+        return ResponseEntity.ok(customerService.getAllCustomers(includeDeleted));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CustomerResponseDTO> updateCustomer(@PathVariable UUID id, @Valid @RequestBody CustomerRequestDTO request) {
+        return ResponseEntity.ok(customerService.updateCustomer(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCustomer(@PathVariable UUID id) {
+
+        customerService.softDeleteCustomer(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}/hard")
+    public ResponseEntity<Void> hardDeleteCustomer(@PathVariable UUID id) {
+
+        customerService.hardDeleteCustomer(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/restore")
+    public ResponseEntity<CustomerResponseDTO> restoreCustomer(@PathVariable UUID id) {
+        return ResponseEntity.ok(customerService.restoreCustomer(id));
+    }
+}
