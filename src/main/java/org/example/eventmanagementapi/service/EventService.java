@@ -59,6 +59,11 @@ public class EventService {
         return eventMapper.toResponseDTO(event);
     }
 
+    protected Event getEventEntityById(UUID id) {
+        return eventRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Active event not found with ID: " + id));
+    }
+
     public List<EventSummaryResponseDTO> getAllEvents(boolean includeDeleted) {
         List<Event> events = includeDeleted
                 ? eventRepository.findAll()
@@ -162,10 +167,5 @@ public class EventService {
         if (!eventRepository.existsById(eventId)) {
             throw new ResourceNotFoundException("Event not found with ID: " + eventId);
         }
-    }
-
-    public Event getEventEntityById(UUID id) {
-        return eventRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Active event not found with ID: " + id));
     }
 }

@@ -34,7 +34,7 @@ public class PerformerService {
         return performerMapper.toResponseDTO(getPerformerEntityById(performerId));
     }
 
-    public Performer getPerformerEntityById(UUID performerId) {
+    protected Performer getPerformerEntityById(UUID performerId) {
         return performerRepository.findByIdAndDeletedFalse(performerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Active performer not found with ID: " + performerId));
     }

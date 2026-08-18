@@ -43,7 +43,7 @@ public class CustomerService {
         return customerMapper.toResponseDTO(getCustomerEntityById(customerId));
     }
 
-    public Customer getCustomerEntityById(UUID customerId) {
+    protected Customer getCustomerEntityById(UUID customerId) {
         return customerRepository.findByIdAndDeletedFalse(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found with ID: " + customerId));
     }

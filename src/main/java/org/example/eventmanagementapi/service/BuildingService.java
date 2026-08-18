@@ -34,7 +34,7 @@ public class BuildingService {
         return buildingMapper.toResponseDTO(getBuildingEntityById(buildingId));
     }
 
-    public Building getBuildingEntityById(UUID buildingId) {
+    protected Building getBuildingEntityById(UUID buildingId) {
         return buildingRepository.findByIdAndDeletedFalse(buildingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Active building not found with ID: " + buildingId));
     }

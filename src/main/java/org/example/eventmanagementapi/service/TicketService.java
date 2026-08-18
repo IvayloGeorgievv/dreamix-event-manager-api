@@ -105,7 +105,7 @@ public class TicketService {
         ticketRepository.deleteByEventId(eventId);
     }
 
-    public Ticket getTicketEntityById(UUID ticketId) {
+    private Ticket getTicketEntityById(UUID ticketId) {
         return ticketRepository.findByIdAndDeletedFalse(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException("Active ticket not found with ID: " + ticketId));
     }

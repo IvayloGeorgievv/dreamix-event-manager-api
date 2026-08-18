@@ -41,7 +41,7 @@ public class VenueService {
         return venueMapper.toResponseDTO(getVenueEntityById(venueId));
     }
 
-    public Venue getVenueEntityById(UUID venueId) {
+    protected Venue getVenueEntityById(UUID venueId) {
         return venueRepository.findByIdAndDeletedFalse(venueId)
                 .orElseThrow(() -> new ResourceNotFoundException("Active venue not found with ID: " + venueId));
     }

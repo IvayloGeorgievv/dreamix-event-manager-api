@@ -11,17 +11,24 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // Regex finding " with ID: <uuid>", ": <uuid>" so they can be escaped
+    private static final Pattern UUID_PATTERN = Pattern.compile("(?i)(\\s*(with\\s*id[:\\s]*|[:\\s]+)?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\s*)");
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleResourceNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
+
+        String sanitizedMessage = sanitizeExceptionMessage(ex.getMessage());
+
         ApiErrorResponse response = ApiErrorResponse.of(
                 HttpStatus.NOT_FOUND.value(),
                 HttpStatus.NOT_FOUND.getReasonPhrase(),
-                "The requested resource was not found",
+                sanitizedMessage,
                 request.getRequestURI()
         );
 
@@ -84,5 +91,14 @@ public class GlobalExceptionHandler {
 
         log.error("[Trace: {}] Unhandled server error at URI [{}]: {}", response.correlationId(), request.getRequestURI(), ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    //private helper: Used to sanitize the Exception message from the UUID and still keep it explanatory
+    private String sanitizeExceptionMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return "The requested resource was not found";
+        }
+        String sanitized = UUID_PATTERN.matcher(message).replaceAll("").trim();
+        return sanitized.isEmpty() ? "The requested resource was not found" : sanitized;
     }
 }
