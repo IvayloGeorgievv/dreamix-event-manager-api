@@ -111,16 +111,13 @@ public class TicketService {
     }
 
     //Event Listener method - Handling Event Deletion and how to handle tickets
+    //Used only on Soft Deletion of Event entity
     @Transactional
     @EventListener
     public void handleEventDeleted(EventDeletedEvent event) {
-        if(event.hardDelete()) {
+        List<Ticket> tickets = ticketRepository.findByEventIdAndDeletedFalse(event.eventId());
+        tickets.forEach(ticket -> ticket.setDeleted(true));
 
-            ticketRepository.deleteByEventId(event.eventId());
-        } else {
-            List<Ticket> tickets = ticketRepository.findByEventIdAndDeletedFalse(event.eventId());
-            tickets.forEach(ticket -> ticket.setDeleted(true));
-        }
     }
 
     //private validation helper

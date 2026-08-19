@@ -32,6 +32,7 @@ public class EventService {
 
     private final VenueService venueService;
     private final PerformerService performerService;
+    private final TicketService ticketService;
 
     private final EventMapper eventMapper;
 
@@ -139,13 +140,13 @@ public class EventService {
         Event event = getEventEntityById(eventId);
         event.setDeleted(true);
 
-        eventPublisher.publishEvent(new EventDeletedEvent(eventId, false));
+        eventPublisher.publishEvent(new EventDeletedEvent(eventId));
     }
 
     @Transactional
     public void hardDeleteEvent(UUID eventId) {
         validateEventExists(eventId);
-        eventPublisher.publishEvent(new EventDeletedEvent(eventId, true));
+        ticketService.deleteTicketsByEventId(eventId);
 
         eventRepository.deleteById(eventId);
     }
