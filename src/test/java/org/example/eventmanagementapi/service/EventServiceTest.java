@@ -1,6 +1,7 @@
 package org.example.eventmanagementapi.service;
 
 import org.example.eventmanagementapi.dto.event.EventRequestDTO;
+import org.example.eventmanagementapi.dto.event.EventResponseDTO;
 import org.example.eventmanagementapi.event.EventDeletedEvent;
 import org.example.eventmanagementapi.exception.BusinessLogicException;
 import org.example.eventmanagementapi.mapper.EventMapper;
@@ -12,9 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mapstruct.factory.Mappers;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -25,14 +25,9 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class EventServiceTest {
@@ -47,7 +42,10 @@ public class EventServiceTest {
     private PerformerService performerService;
 
     @Mock
-    private EventMapper eventMapper;
+    private TicketService ticketService;
+
+    @Spy
+    private EventMapper eventMapper = Mappers.getMapper(EventMapper.class);
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -73,9 +71,24 @@ public class EventServiceTest {
     }
 
     @Test
+    @DisplayName("Successfully get Event by ID and map to EventResponseDTO using EventMapper")
+    void getEventById_ShouldSucceed_AndMapFieldsCorrectly() {
+        //Arrange
+        when(eventRepository.findByIdAndDeletedFalse(eventId)).thenReturn(Optional.of(event));
+
+        //Act
+        EventResponseDTO actualResponse = eventService.getEventById(eventId);
+
+        //Assert
+        assertNotNull(actualResponse);
+        assertEquals(eventId, actualResponse.id());
+        assertEquals("Concert", actualResponse.title());
+        assertEquals(BigDecimal.valueOf(40.0), actualResponse.basePrice());
+    }
+
+    @Test
     @DisplayName("Throw BusinessLogicException when Updating Event date to a past date")
     void updateEvent_ShouldThrowException_WhenDateIsInPast() {
-
         LocalDateTime pastDate = LocalDateTime.now().minusDays(1);
         EventRequestDTO request = new EventRequestDTO(
                 "New Title",
@@ -105,17 +118,35 @@ public class EventServiceTest {
 
         //Arrange
         when(eventRepository.existsById(eventId)).thenReturn(true);
-        ArgumentCaptor<EventDeletedEvent> eventCaptor = ArgumentCaptor.forClass(EventDeletedEvent.class);
 
         //Act
         eventService.hardDeleteEvent(eventId);
+
+        //Assert
+        //InOrder -> validates the chronology of calls:
+        // 1st we delete the Tickets to not break the FK to Event
+        // After that we delete the Event
+        InOrder inOrder = inOrder(ticketService, eventRepository);
+        inOrder.verify(ticketService, times(1)).deleteTicketsByEventId(eventId);
+        inOrder.verify(eventRepository, times(1)).deleteById(eventId);
+
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("Publish EventDeletedEvent on Soft Delete")
+    void softDeleteEvent_ShouldPublishEvent() {
+        //Arrange
+        when(eventRepository.findByIdAndDeletedFalse(eventId)).thenReturn(Optional.of(event));
+        ArgumentCaptor<EventDeletedEvent> eventCaptor = ArgumentCaptor.forClass(EventDeletedEvent.class);
+
+        //Act
+        eventService.softDeleteEvent(eventId);
 
         //Assert
         verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
         EventDeletedEvent publishedEvent = eventCaptor.getValue();
 
         assertEquals(eventId, publishedEvent.eventId());
-        assertTrue(publishedEvent.hardDelete());
-        verify(eventRepository, times(1)).deleteById(eventId);
     }
 }

@@ -15,8 +15,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -47,8 +51,8 @@ public class TicketServiceTest {
     @Mock
     private EventService eventService;
 
-    @Mock
-    private TicketMapper ticketMapper;
+    @Spy
+    private TicketMapper ticketMapper = Mappers.getMapper(TicketMapper.class);
 
     @InjectMocks
     private TicketService ticketService;
@@ -56,6 +60,7 @@ public class TicketServiceTest {
     // Field-Level to be reachable for each Test
     private UUID customerId;
     private UUID eventId;
+    private UUID ticketId;
     private String seatNumber;
     private TicketRequestDTO ticketRequestDTO;
     private Customer customer;
@@ -66,6 +71,7 @@ public class TicketServiceTest {
         //Arrange
         customerId = UUID.randomUUID();
         eventId = UUID.randomUUID();
+        ticketId = UUID.randomUUID();
         seatNumber = "A-12";
 
         ticketRequestDTO = new TicketRequestDTO(customerId, eventId, seatNumber);
@@ -109,23 +115,12 @@ public class TicketServiceTest {
         //Arrange for current Test
 
         Ticket savedTicket = new Ticket(customer, event, seatNumber);
-
-        TicketResponseDTO expectedResponse = new TicketResponseDTO(
-                UUID.randomUUID(),
-                customer.getId(),
-                customer.getFirstName() + " " + customer.getLastName(),
-                event.getId(),
-                event.getTitle(),
-                seatNumber,
-                BigDecimal.valueOf(50.0)
-        );
-
+        ReflectionTestUtils.setField(savedTicket, "id", ticketId);
 
         when(customerService.getCustomerEntityById(customerId)).thenReturn(customer);
         when(eventService.getEventEntityById(eventId)).thenReturn(event);
         when(ticketRepository.existsByEventIdAndSeatNumberAndDeletedFalse(eventId, seatNumber)).thenReturn(false);
         when(ticketRepository.save(any(Ticket.class))).thenReturn(savedTicket);
-        when(ticketMapper.toResponseDTO(savedTicket)).thenReturn(expectedResponse);
 
 
         //Act
@@ -133,9 +128,15 @@ public class TicketServiceTest {
 
         //Assert
         assertNotNull(actualResponse);
-        assertEquals(expectedResponse, actualResponse);
-        assertEquals(1, event.getSoldTicketsCount());
+        assertEquals(ticketId, actualResponse.id());
+        assertEquals(customerId, actualResponse.customerId());
+        assertEquals(eventId, actualResponse.eventId());
+        assertEquals("John Doe", actualResponse.customerName());
+        assertEquals("Rock Concert", actualResponse.eventTitle());
+        assertEquals("A-12", actualResponse.seatNumber());
+        assertEquals(BigDecimal.valueOf(50.0), actualResponse.pricePaid());
 
+        assertEquals(1, event.getSoldTicketsCount());
         verify(ticketRepository, times(1)).save(any(Ticket.class));
     }
 
@@ -173,7 +174,7 @@ public class TicketServiceTest {
         when(ticketRepository.findByEventIdAndDeletedFalse(eventId)).thenReturn(activeTickets);
 
         //Creating the Event triggering Tickets soft deletion
-        EventDeletedEvent deletedEvent = new EventDeletedEvent(eventId, false);
+        EventDeletedEvent deletedEvent = new EventDeletedEvent(eventId);
 
         //Act
         ticketService.handleEventDeleted(deletedEvent);
@@ -182,5 +183,28 @@ public class TicketServiceTest {
         assertTrue(ticket1.isDeleted());
         assertTrue(ticket2.isDeleted());
         verify(ticketRepository, never()).deleteByEventId(any());
+    }
+
+    @ParameterizedTest(name = "Run {index} -> Buy ticket for seat: {0}")
+    @ValueSource(strings = {"A-01", "VIP-12", "BALCONY-5", "SECTOR-C-99"})
+    @DisplayName("Successfully purchase ticket for various seat formats")
+    void buyTicket_ShouldSucceed_ForDifferentSeatNumbers(String candidateSeat) {
+        // Arrange
+        TicketRequestDTO request = new TicketRequestDTO(customerId, eventId, candidateSeat);
+        Ticket candidateTicket = new Ticket(customer, event, candidateSeat);
+        ReflectionTestUtils.setField(candidateTicket, "id", UUID.randomUUID());
+
+        when(customerService.getCustomerEntityById(customerId)).thenReturn(customer);
+        when(eventService.getEventEntityById(eventId)).thenReturn(event);
+        when(ticketRepository.existsByEventIdAndSeatNumberAndDeletedFalse(eventId, candidateSeat)).thenReturn(false);
+        when(ticketRepository.save(any(Ticket.class))).thenReturn(candidateTicket);
+
+        // Act
+        TicketResponseDTO response = ticketService.buyTicket(request);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(candidateSeat, response.seatNumber());
+        verify(ticketRepository, times(1)).save(any(Ticket.class));
     }
 }
