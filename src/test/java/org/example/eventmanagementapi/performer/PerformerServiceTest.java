@@ -1,6 +1,5 @@
 package org.example.eventmanagementapi.performer;
 
-import org.example.eventmanagementapi.performer.*;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.common.exception.ResourceNotFoundException;
 import org.example.eventmanagementapi.performer.dto.PerformerRequestDTO;

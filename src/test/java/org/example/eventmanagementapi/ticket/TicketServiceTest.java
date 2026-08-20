@@ -1,13 +1,14 @@
-package org.example.eventmanagementapi.service;
+package org.example.eventmanagementapi.ticket;
 
 import org.example.eventmanagementapi.customer.CustomerService;
-import org.example.eventmanagementapi.ticket.*;
 import org.example.eventmanagementapi.event.EventDeletedEvent;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.event.EventService;
 import org.example.eventmanagementapi.building.Building;
 import org.example.eventmanagementapi.customer.Customer;
 import org.example.eventmanagementapi.event.Event;
+import org.example.eventmanagementapi.ticket.dto.TicketRequestDTO;
+import org.example.eventmanagementapi.ticket.dto.TicketResponseDTO;
 import org.example.eventmanagementapi.venue.Venue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,6 +26,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,7 +55,7 @@ public class TicketServiceTest {
     private TicketMapper ticketMapper = Mappers.getMapper(TicketMapper.class);
 
     @InjectMocks
-    private TicketService ticketService;
+    private TicketServiceImpl ticketService;
 
     // Field-Level to be reachable for each Test
     private UUID customerId;
@@ -204,5 +206,42 @@ public class TicketServiceTest {
         assertNotNull(response);
         assertEquals(candidateSeat, response.seatNumber());
         verify(ticketRepository, times(1)).save(any(Ticket.class));
+    }
+
+    @Test
+    @DisplayName("Throw BusinessLogicException when trying to buy a Ticket for past Event")
+    void buyTicket_ShouldThrowException_WhenPastEvent() {
+        event.setDateAndTime(LocalDateTime.now().minusDays(5));
+
+        when(customerService.getCustomerEntityById(customerId)).thenReturn(customer);
+        when(eventService.getEventEntityById(eventId)).thenReturn(event);
+
+
+
+        BusinessLogicException exception = assertThrows(
+                BusinessLogicException.class,
+                () -> ticketService.buyTicket(ticketRequestDTO)
+        );
+
+        assertEquals("Cannot buy a ticket for a past event!", exception.getMessage());
+        assertEquals(0, event.getSoldTicketsCount());
+        verify(ticketRepository, never()).save(any(Ticket.class));
+        verify(ticketRepository, never()).existsByEventIdAndSeatNumberAndDeletedFalse(any(), any());
+    }
+
+    @Test
+    @DisplayName("Cancel Ticket decrements Tickets Sold count in Event")
+    void cancelTicket_ShouldDecrementSoldTickets() {
+        Ticket ticket = new Ticket(customer, event, seatNumber);
+        ReflectionTestUtils.setField(ticket, "id", ticketId);
+        event.incrementSoldTickets();
+
+        when(ticketRepository.findByIdAndDeletedFalse(ticketId)).thenReturn(Optional.of(ticket));
+
+        ticketService.cancelTicket(ticketId);
+
+        assertEquals(0, event.getSoldTicketsCount());
+        assertTrue(ticket.isDeleted());
+        verify(ticketRepository, never()).delete(any());
     }
 }

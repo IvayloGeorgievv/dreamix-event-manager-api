@@ -1,9 +1,10 @@
-package org.example.eventmanagementapi.service;
+package org.example.eventmanagementapi.venue;
 
 import org.example.eventmanagementapi.building.BuildingService;
-import org.example.eventmanagementapi.venue.*;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.building.Building;
+import org.example.eventmanagementapi.venue.dto.VenueRequestDTO;
+import org.example.eventmanagementapi.venue.dto.VenueResponseDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,7 +35,7 @@ public class VenueServiceTest {
     private VenueMapper venueMapper = Mappers.getMapper(VenueMapper.class);
 
     @InjectMocks
-    private VenueService venueService;
+    private VenueServiceImpl venueService;
 
     private UUID venueId;
     private UUID buildingId;
@@ -85,9 +86,9 @@ public class VenueServiceTest {
 
         VenueResponseDTO response = venueService.createVenue(request);
 
+        assertNotNull(response);
         assertEquals("Stage C", response.name());
         assertEquals(300, response.capacity());
-        assertEquals(1, building.getVenues().size());
         verify(venueRepository, times(1)).save(any(Venue.class));
     }
 

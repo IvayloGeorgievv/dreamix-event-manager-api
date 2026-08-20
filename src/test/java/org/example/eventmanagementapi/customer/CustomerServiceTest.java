@@ -1,8 +1,9 @@
-package org.example.eventmanagementapi.service;
+package org.example.eventmanagementapi.customer;
 
-import org.example.eventmanagementapi.customer.*;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.common.exception.ResourceNotFoundException;
+import org.example.eventmanagementapi.customer.dto.CustomerRequestDTO;
+import org.example.eventmanagementapi.customer.dto.CustomerResponseDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ public class CustomerServiceTest {
     private CustomerMapper customerMapper = Mappers.getMapper(CustomerMapper.class);
 
     @InjectMocks
-    private CustomerService customerService;
+    private CustomerServiceImpl customerService;
 
     private UUID customerId;
     private CustomerRequestDTO customerRequestDTO;

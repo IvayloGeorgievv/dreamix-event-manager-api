@@ -1,9 +1,9 @@
-package org.example.eventmanagementapi.controller;
+package org.example.eventmanagementapi.ticket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.eventmanagementapi.ticket.TicketRequestDTO;
-import org.example.eventmanagementapi.ticket.TicketResponseDTO;
-import org.example.eventmanagementapi.ticket.TicketService;
+import org.example.eventmanagementapi.common.exception.BusinessLogicException;
+import org.example.eventmanagementapi.ticket.dto.TicketRequestDTO;
+import org.example.eventmanagementapi.ticket.dto.TicketResponseDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,5 +77,29 @@ public class TicketControllerIntegrationTest {
                 .andExpect(jsonPath("$.seatNumber").value(seatNumber))
                 .andExpect(jsonPath("$.customerName").value("John Doe"))
                 .andExpect(jsonPath("$.pricePaid").value(60.0));
+    }
+
+    @Test
+    @DisplayName("POST /api/tickets - Should return 409 Conflict when venue capacity is exhausted")
+    void buyTicket_ShouldReturnConflict_WhenCapacityExhausted() throws Exception {
+        // Arrange
+        UUID customerId = UUID.randomUUID();
+        UUID eventId = UUID.randomUUID();
+        String seatNumber = "A-15";
+
+        TicketRequestDTO ticketRequestDTO = new TicketRequestDTO(customerId, eventId, seatNumber);
+
+        when(ticketService.buyTicket(any(TicketRequestDTO.class)))
+                .thenThrow(new BusinessLogicException("No more capacity available for this venue!"));
+
+        // Act & Assert
+        mockMvc.perform(post("/api/tickets")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(ticketRequestDTO)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.error").value("Conflict"))
+                .andExpect(jsonPath("$.message").value("No more capacity available for this venue!"))
+                .andExpect(jsonPath("$.path").value("/api/tickets"));
     }
 }

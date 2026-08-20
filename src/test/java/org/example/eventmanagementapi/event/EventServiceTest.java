@@ -1,8 +1,10 @@
-package org.example.eventmanagementapi.service;
+package org.example.eventmanagementapi.event;
 
-import org.example.eventmanagementapi.event.*;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.building.Building;
+import org.example.eventmanagementapi.event.dto.EventRequestDTO;
+import org.example.eventmanagementapi.event.dto.EventResponseDTO;
+import org.example.eventmanagementapi.performer.Performer;
 import org.example.eventmanagementapi.venue.Venue;
 import org.example.eventmanagementapi.performer.PerformerService;
 import org.example.eventmanagementapi.ticket.TicketService;
@@ -20,6 +22,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -49,7 +52,7 @@ public class EventServiceTest {
     private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
-    private EventService eventService;
+    private EventServiceImpl eventService;
 
     private UUID eventId;
     private UUID venueId;
@@ -146,5 +149,27 @@ public class EventServiceTest {
         EventDeletedEvent publishedEvent = eventCaptor.getValue();
 
         assertEquals(eventId, publishedEvent.eventId());
+    }
+
+    @Test
+    @DisplayName("Throw BusinessLogicException on trying to add already added Performer to Event")
+    void addPerformerToEvent_ShouldThrowException_WhenDuplicatePerformer() {
+        UUID performerId = UUID.randomUUID();
+        Performer performer = new Performer("A Group");
+
+        ReflectionTestUtils.setField(performer, "id", performerId);
+
+        event.addPerformer(performer);
+        when(eventRepository.findByIdAndDeletedFalse(eventId)).thenReturn(Optional.of(event));
+        when(performerService.getPerformerEntityById(performerId)).thenReturn(performer);
+
+
+        BusinessLogicException exception = assertThrows(
+                BusinessLogicException.class,
+                () -> eventService.addPerformerToEvent(eventId, performerId)
+        );
+
+        assertEquals("Performer is already added to this event!", exception.getMessage());
+        assertEquals(1, event.getPerformers().size());
     }
 }

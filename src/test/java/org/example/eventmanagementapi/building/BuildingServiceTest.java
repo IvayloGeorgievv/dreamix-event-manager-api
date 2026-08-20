@@ -1,6 +1,7 @@
-package org.example.eventmanagementapi.service;
+package org.example.eventmanagementapi.building;
 
-import org.example.eventmanagementapi.building.*;
+import org.example.eventmanagementapi.building.dto.BuildingRequestDTO;
+import org.example.eventmanagementapi.building.dto.BuildingResponseDTO;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.common.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,7 @@ public class BuildingServiceTest {
     private BuildingMapper buildingMapper = Mappers.getMapper(BuildingMapper.class);
 
     @InjectMocks
-    private BuildingService buildingService;
+    private BuildingServiceImpl buildingService;
 
     private UUID buildingId;
     private Building building;
