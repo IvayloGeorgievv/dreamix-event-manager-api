@@ -22,7 +22,5 @@ public interface TicketService {
 
     TicketResponseDTO restoreTicket(UUID ticketId);
 
-    void deleteTicketsByEventId(UUID eventId);
-
     void handleEventDeleted(EventDeletedEvent event);
 }

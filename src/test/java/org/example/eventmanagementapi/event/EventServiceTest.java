@@ -2,12 +2,12 @@ package org.example.eventmanagementapi.event;
 
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.building.Building;
+import org.example.eventmanagementapi.common.exception.ResourceNotFoundException;
 import org.example.eventmanagementapi.event.dto.EventRequestDTO;
 import org.example.eventmanagementapi.event.dto.EventResponseDTO;
 import org.example.eventmanagementapi.performer.Performer;
 import org.example.eventmanagementapi.venue.Venue;
 import org.example.eventmanagementapi.performer.PerformerService;
-import org.example.eventmanagementapi.ticket.TicketService;
 import org.example.eventmanagementapi.venue.VenueService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,7 +22,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,9 +40,6 @@ public class EventServiceTest {
 
     @Mock
     private PerformerService performerService;
-
-    @Mock
-    private TicketService ticketService;
 
     @Spy
     private EventMapper eventMapper = Mappers.getMapper(EventMapper.class);
@@ -114,24 +110,33 @@ public class EventServiceTest {
     }
 
     @Test
-    @DisplayName("Publish EventDeletedEvent and hard delete from repository")
-    void hardDeleteEvent_shouldPublishEventAndCallDelete() {
-
-        //Arrange
+    @DisplayName("Hard delete Event from repository when event exists")
+    void hardDeleteEvent_ShouldDeleteEvent_WhenEventExists() {
+        // Arrange
         when(eventRepository.existsById(eventId)).thenReturn(true);
 
-        //Act
+        // Act
         eventService.hardDeleteEvent(eventId);
 
-        //Assert
-        //InOrder -> validates the chronology of calls:
-        // 1st we delete the Tickets to not break the FK constraint
-        // 2nd we delete the Event entity
-        InOrder inOrder = inOrder(ticketService, eventRepository);
-        inOrder.verify(ticketService, times(1)).deleteTicketsByEventId(eventId);
-        inOrder.verify(eventRepository, times(1)).deleteById(eventId);
-
+        // Assert
+        verify(eventRepository, times(1)).deleteById(eventId);
         verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("Throw ResourceNotFoundException when hard deleting a non-existent Event")
+    void hardDeleteEvent_ShouldThrowException_WhenEventNotFound() {
+        // Arrange
+        when(eventRepository.existsById(eventId)).thenReturn(false);
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> eventService.hardDeleteEvent(eventId)
+        );
+
+        assertEquals("Event not found with ID: " + eventId, exception.getMessage());
+        verify(eventRepository, never()).delete(any());
     }
 
     @Test
@@ -171,5 +176,23 @@ public class EventServiceTest {
 
         assertEquals("Performer is already added to this event!", exception.getMessage());
         assertEquals(1, event.getPerformers().size());
+    }
+
+    @Test
+    @DisplayName("Throw BusinessLogicException when removing a Performer who is not assigned to Event")
+    void removePerformerFromEvent_ShouldThrowException_WhenPerformerNotAssociated() {
+        UUID performerId = UUID.randomUUID();
+        Performer performer = new Performer("Guest Artist");
+        ReflectionTestUtils.setField(performer, "id", performerId);
+
+        when(eventRepository.findByIdAndDeletedFalse(eventId)).thenReturn(Optional.of(event));
+        when(performerService.getPerformerEntityById(performerId)).thenReturn(performer);
+
+        BusinessLogicException exception = assertThrows(
+                BusinessLogicException.class,
+                () -> eventService.removePerformerFromEvent(eventId, performerId)
+        );
+
+        assertEquals("Performer is not associated with this event!", exception.getMessage());
     }
 }

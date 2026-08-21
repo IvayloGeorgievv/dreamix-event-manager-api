@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.eventmanagementapi.common.model.BaseEntity;
 import org.example.eventmanagementapi.performer.Performer;
+import org.example.eventmanagementapi.ticket.Ticket;
 import org.example.eventmanagementapi.venue.Venue;
 
 import java.time.LocalDateTime;
@@ -50,6 +51,10 @@ public class Event extends BaseEntity {
     )
     @Setter(AccessLevel.NONE)
     private final List<Performer> performers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Setter(AccessLevel.NONE)
+    private final List<Ticket> tickets = new ArrayList<>();
 
     public Event(Venue venue, String title, BigDecimal basePrice, LocalDateTime dateAndTime) {
         this.venue = venue;

@@ -105,12 +105,6 @@ public class TicketServiceImpl implements TicketService {
         return ticketMapper.toResponseDTO(ticket);
     }
 
-    @Override
-    @Transactional
-    public void deleteTicketsByEventId(UUID eventId) {
-        ticketRepository.deleteByEventId(eventId);
-    }
-
     private Ticket getTicketEntityById(UUID ticketId) {
         return ticketRepository.findByIdAndDeletedFalse(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException("Active ticket not found with ID: " + ticketId));

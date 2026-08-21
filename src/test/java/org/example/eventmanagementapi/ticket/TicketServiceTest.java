@@ -182,7 +182,6 @@ public class TicketServiceTest {
         //Assert
         assertTrue(ticket1.isDeleted());
         assertTrue(ticket2.isDeleted());
-        verify(ticketRepository, never()).deleteByEventId(any());
     }
 
     @ParameterizedTest(name = "Run {index} -> Buy ticket for seat: {0}")
@@ -243,5 +242,25 @@ public class TicketServiceTest {
         assertEquals(0, event.getSoldTicketsCount());
         assertTrue(ticket.isDeleted());
         verify(ticketRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("Throw BusinessLogicException when restoring a Ticket whose seat is tacken")
+    void restoreTicket_ShouldThrowException_WhenSeatIsRebooked() {
+        Ticket ticket = new Ticket(customer, event, seatNumber);
+        ReflectionTestUtils.setField(ticket, "id", ticketId);
+        ticket.setDeleted(true);
+
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(ticketRepository.existsByEventIdAndSeatNumberAndDeletedFalse(eventId, seatNumber)).thenReturn(true);
+
+        BusinessLogicException exception = assertThrows(
+                BusinessLogicException.class,
+                () -> ticketService.restoreTicket(ticketId)
+        );
+
+        assertEquals("Seat has since been rebooked; cannot restore this ticket!", exception.getMessage());
+        assertEquals(0, event.getSoldTicketsCount());
+        assertTrue(ticket.isDeleted());
     }
 }

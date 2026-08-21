@@ -9,7 +9,6 @@ import org.example.eventmanagementapi.event.dto.EventSummaryResponseDTO;
 import org.example.eventmanagementapi.performer.Performer;
 import org.example.eventmanagementapi.venue.Venue;
 import org.example.eventmanagementapi.performer.PerformerService;
-import org.example.eventmanagementapi.ticket.TicketService;
 import org.example.eventmanagementapi.venue.VenueService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -31,7 +30,6 @@ public class EventServiceImpl implements EventService{
 
     private final VenueService venueService;
     private final PerformerService performerService;
-    private final TicketService ticketService;
 
     private final EventMapper eventMapper;
 
@@ -163,7 +161,6 @@ public class EventServiceImpl implements EventService{
     @Transactional
     public void hardDeleteEvent(UUID eventId) {
         validateEventExists(eventId);
-        ticketService.deleteTicketsByEventId(eventId);
 
         eventRepository.deleteById(eventId);
     }
