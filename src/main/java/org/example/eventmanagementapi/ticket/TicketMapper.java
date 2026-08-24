@@ -24,4 +24,14 @@ interface TicketMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateTicketFromDto(TicketRequestDTO ticketRequestDTO, @MappingTarget Ticket ticket);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "customer", ignore = true)
+    @Mapping(target = "event", ignore = true)
+    @Mapping(target = "pricePaid", ignore = true)
+    Ticket toEntity(TicketRequestDTO ticketRequestDTO);
 }

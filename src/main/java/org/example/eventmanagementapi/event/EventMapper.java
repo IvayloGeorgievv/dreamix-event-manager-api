@@ -28,6 +28,16 @@ interface EventMapper {
     @Mapping(target = "updatedAt", ignore = true)
     void updateEventFromDto(EventRequestDTO eventRequestDTO, @MappingTarget Event event);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "venue", ignore = true)
+    @Mapping(target = "performers", ignore = true)
+    @Mapping(target = "tickets", ignore = true)
+    Event toEntity(EventRequestDTO eventRequestDTO);
+
     default String performerToName(Performer performer) {
         return performer.getName();
     }

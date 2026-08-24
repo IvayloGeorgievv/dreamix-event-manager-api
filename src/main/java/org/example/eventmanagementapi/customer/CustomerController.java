@@ -2,6 +2,7 @@ package org.example.eventmanagementapi.customer;
 
 import org.example.eventmanagementapi.customer.dto.CustomerRequestDTO;
 import org.example.eventmanagementapi.customer.dto.CustomerResponseDTO;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,12 +18,6 @@ import java.util.UUID;
 public class CustomerController {
 
     private final CustomerService customerService;
-
-    @PostMapping
-    public ResponseEntity<CustomerResponseDTO> registerCustomer(@Valid @RequestBody CustomerRequestDTO request) {
-        CustomerResponseDTO customer = customerService.registerCustomer(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(customer);
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<CustomerResponseDTO> getCustomerById(@PathVariable UUID id) {
@@ -47,6 +42,7 @@ public class CustomerController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}/hard")
     public ResponseEntity<Void> hardDeleteCustomer(@PathVariable UUID id) {
 

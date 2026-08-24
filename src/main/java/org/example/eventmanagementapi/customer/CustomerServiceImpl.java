@@ -22,24 +22,6 @@ public class CustomerServiceImpl implements CustomerService {
 
 
     @Override
-    @Transactional
-    public CustomerResponseDTO registerCustomer(CustomerRequestDTO request) {
-        validateEmailUniqueness(request.email());
-
-        Customer customer = new Customer(
-                request.firstName(),
-                request.lastName(),
-                request.email(),
-                request.phoneNumber(),
-                request.addressLine(),
-                request.postalCode()
-        );
-        Customer savedCustomer = customerRepository.save(customer);
-        return customerMapper.toResponseDTO(savedCustomer);
-    }
-
-
-    @Override
     public CustomerResponseDTO getCustomerById(UUID customerId) {
         return customerMapper.toResponseDTO(getCustomerEntityById(customerId));
     }

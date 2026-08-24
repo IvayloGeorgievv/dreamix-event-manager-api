@@ -8,11 +8,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-interface CustomerRepository extends JpaRepository<Customer, UUID> {
+public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
     List<Customer> findAllByDeletedFalse();
 
     Optional<Customer> findByIdAndDeletedFalse(UUID id);
+
+    Optional<Customer> findByEmailAndDeletedFalse(String email);
 
     boolean existsByIdAndDeletedFalse(UUID id);
 

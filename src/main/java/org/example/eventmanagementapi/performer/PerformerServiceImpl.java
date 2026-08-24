@@ -22,7 +22,7 @@ public class PerformerServiceImpl implements PerformerService {
     @Override
     @Transactional
     public PerformerResponseDTO createPerformer(PerformerRequestDTO request) {
-        Performer performer = new Performer(request.name());
+        Performer performer = performerMapper.toEntity(request);
         Performer savedPerformer = performerRepository.save(performer);
         return performerMapper.toResponseDTO(savedPerformer);
     }

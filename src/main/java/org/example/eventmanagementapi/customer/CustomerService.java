@@ -8,8 +8,6 @@ import java.util.UUID;
 
 public interface CustomerService {
 
-    CustomerResponseDTO registerCustomer(CustomerRequestDTO request);
-
     CustomerResponseDTO getCustomerById(UUID customerId);
 
     Customer getCustomerEntityById(UUID customerId);

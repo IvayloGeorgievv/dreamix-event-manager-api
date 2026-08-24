@@ -39,7 +39,8 @@ public class EventServiceImpl implements EventService{
     @Transactional
     public EventSummaryResponseDTO createEvent(EventRequestDTO request) {
         Venue venue = venueService.getVenueEntityById(request.venueId());
-        Event event = new Event(venue, request.title(), request.basePrice(), request.dateAndTime());
+        Event event = eventMapper.toEntity(request);
+        event.setVenue(venue);
 
         if (request.performerIds() != null && !request.performerIds().isEmpty()) {
             Set<UUID> uniquePerformerIds = new HashSet<>(request.performerIds());

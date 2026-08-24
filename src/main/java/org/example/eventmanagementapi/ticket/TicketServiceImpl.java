@@ -10,10 +10,12 @@ import org.example.eventmanagementapi.event.Event;
 import org.example.eventmanagementapi.ticket.dto.CustomerTicketResponseDTO;
 import org.example.eventmanagementapi.ticket.dto.TicketRequestDTO;
 import org.example.eventmanagementapi.ticket.dto.TicketResponseDTO;
-import org.springframework.context.event.EventListener;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,7 +43,10 @@ public class TicketServiceImpl implements TicketService {
 
         event.incrementSoldTickets();
 
-        Ticket ticket = new Ticket(customer, event, request.seatNumber());
+        Ticket ticket = ticketMapper.toEntity(request);
+        ticket.setCustomer(customer);
+        ticket.setEvent(event);
+        ticket.setPricePaid(event.getBasePrice());
         Ticket savedTicket = ticketRepository.save(ticket);
 
         return ticketMapper.toResponseDTO(savedTicket);
@@ -71,6 +76,19 @@ public class TicketServiceImpl implements TicketService {
         event.decrementSoldTickets();
 
         ticket.setDeleted(true); // Soft Delete
+    }
+
+    //Transactional Event Listener method - Explicitly handling Tickets soft deletion AFTER Event soft deletion
+    //Used only on Soft Deletion of Event entity
+    // Propagation.REQUIRES_NEW - We need a Transaction to update the Tickets
+    // the Transaction for Event update is already closed so default value (Propagation.REQUIRED) won't work
+    @Override
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handleEventDeleted(EventDeletedEvent event) {
+        List<Ticket> tickets = ticketRepository.findByEventIdAndDeletedFalse(event.eventId());
+        tickets.forEach(ticket -> ticket.setDeleted(true));
+
     }
 
     @Override
@@ -108,17 +126,6 @@ public class TicketServiceImpl implements TicketService {
     private Ticket getTicketEntityById(UUID ticketId) {
         return ticketRepository.findByIdAndDeletedFalse(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException("Active ticket not found with ID: " + ticketId));
-    }
-
-    //Event Listener method - Handling Event Deletion and how to handle tickets
-    //Used only on Soft Deletion of Event entity
-    @Override
-    @Transactional
-    @EventListener
-    public void handleEventDeleted(EventDeletedEvent event) {
-        List<Ticket> tickets = ticketRepository.findByEventIdAndDeletedFalse(event.eventId());
-        tickets.forEach(ticket -> ticket.setDeleted(true));
-
     }
 
     //private validation helper

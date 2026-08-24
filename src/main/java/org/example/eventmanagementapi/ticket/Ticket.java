@@ -20,7 +20,7 @@ import java.math.BigDecimal;
                 columnNames = {"event_id", "seat_number"}
         )
 )
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Getter
 @Setter
 public class Ticket extends BaseEntity {
@@ -34,11 +34,9 @@ public class Ticket extends BaseEntity {
     private Event event;
 
     @Column(name = "seat_number", nullable = false, length = 50)
-    @Setter(AccessLevel.NONE)
     private String seatNumber;
 
     @Column(name = "price_paid", nullable = false, updatable = false, precision = 10, scale = 2)
-    @Setter(AccessLevel.NONE)
     private BigDecimal pricePaid;
 
     public Ticket(Customer customer, Event event, String seatNumber) {

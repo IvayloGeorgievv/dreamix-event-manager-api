@@ -17,4 +17,10 @@ interface PerformerMapper {
     @Mapping(target = "updatedAt", ignore = true)
     void updatePerformerFromDto(PerformerRequestDTO performerRequestDTO, @MappingTarget Performer performer);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
+    Performer toEntity(PerformerRequestDTO performerRequestDTO);
 }

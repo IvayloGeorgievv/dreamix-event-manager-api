@@ -11,10 +11,16 @@ interface BuildingMapper {
 
     BuildingResponseDTO toResponseDTO(Building building);
 
-
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateBuildingFromDto(BuildingRequestDTO buildingRequestDTO, @MappingTarget Building building);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
+    Building toEntity(BuildingRequestDTO buildingRequestDTO);
 }

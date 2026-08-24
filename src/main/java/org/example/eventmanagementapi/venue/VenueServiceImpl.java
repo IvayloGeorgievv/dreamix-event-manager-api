@@ -29,7 +29,8 @@ public class VenueServiceImpl implements VenueService {
     public VenueResponseDTO createVenue(VenueRequestDTO request) {
         Building building = buildingService.getBuildingEntityById(request.buildingId());
 
-        Venue venue = new Venue(request.name(), request.capacity(), building);
+        Venue venue = venueMapper.toEntity(request);
+        venue.setBuilding(building);
         Venue savedVenue = venueRepository.save(venue);
 
         return venueMapper.toResponseDTO(savedVenue);

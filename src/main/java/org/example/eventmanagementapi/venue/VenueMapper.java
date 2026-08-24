@@ -18,4 +18,12 @@ interface VenueMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateVenueFromDto(VenueRequestDTO venueRequestDTO, @MappingTarget Venue venue);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "building", ignore = true)
+    Venue toEntity(VenueRequestDTO venueRequestDTO);
 }

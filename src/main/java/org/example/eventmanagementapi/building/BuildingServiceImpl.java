@@ -23,7 +23,7 @@ public class BuildingServiceImpl implements BuildingService {
     @Override
     @Transactional
     public BuildingResponseDTO createBuilding(BuildingRequestDTO request) {
-        Building building = new Building(request.name(), request.city(), request.address());
+        Building building = buildingMapper.toEntity(request);
         Building savedBuilding = buildingRepository.save(building);
         return buildingMapper.toResponseDTO(savedBuilding);
     }
