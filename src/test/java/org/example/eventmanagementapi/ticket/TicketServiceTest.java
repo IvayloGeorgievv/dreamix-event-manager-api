@@ -1,6 +1,7 @@
 package org.example.eventmanagementapi.ticket;
 
 import org.example.eventmanagementapi.customer.CustomerService;
+import org.example.eventmanagementapi.customer.Role;
 import org.example.eventmanagementapi.event.EventDeletedEvent;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.event.EventService;
@@ -80,7 +81,9 @@ public class TicketServiceTest {
                 "John",
                 "Doe",
                 "john@gmail.com",
-                "123456",
+                "password123!",
+                Role.ROLE_CUSTOMER,
+                "0888123456",
                 "Street 1",
                 "1000"
         );

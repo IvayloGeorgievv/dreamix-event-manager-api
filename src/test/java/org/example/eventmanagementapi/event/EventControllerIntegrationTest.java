@@ -62,7 +62,7 @@ public class EventControllerIntegrationTest {
 
         EventSummaryResponseDTO response = new EventSummaryResponseDTO(
                 eventId,
-                "Symphony Night",
+                "Event",
                 BigDecimal.valueOf(80.0),
                 eventDate,
                 venueId,

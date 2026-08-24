@@ -54,45 +54,13 @@ public class CustomerServiceTest {
                 customerRequestDTO.firstName(),
                 customerRequestDTO.lastName(),
                 customerRequestDTO.email(),
+                "encodedPassword123!",
+                Role.ROLE_CUSTOMER,
                 customerRequestDTO.phoneNumber(),
                 customerRequestDTO.addressLine(),
                 customerRequestDTO.postalCode()
         );
         ReflectionTestUtils.setField(customer, "id", customerId);
-    }
-
-    @Test
-    @DisplayName("Successfully register Customer and map response DTO correctly using CustomerMapper")
-    void registerCustomer_ShouldSucceed_WhenValidRequest() {
-        when(customerRepository.existsByEmailAndDeletedFalse(customerRequestDTO.email())).thenReturn(false);
-        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
-
-        //Act
-        CustomerResponseDTO actualResponse = customerService.registerCustomer(customerRequestDTO);
-
-        //Assert
-        assertNotNull(actualResponse);
-        assertEquals(customerId, actualResponse.id());
-        assertEquals("John", actualResponse.firstName());
-        assertEquals("Doe", actualResponse.lastName());
-        assertEquals("john@gmail.com", actualResponse.email());
-        assertEquals("0123456789", actualResponse.phoneNumber());
-
-        verify(customerRepository, times(1)).save(any(Customer.class));
-    }
-
-    @Test
-    @DisplayName("Throw BusinessLogicException when registering customer with duplicate email")
-    void registerCustomer_ShouldThrowException_WhenEmailAlreadyUsed() {
-        when(customerRepository.existsByEmailAndDeletedFalse(customerRequestDTO.email())).thenReturn(true);
-
-        BusinessLogicException exception = assertThrows(
-                BusinessLogicException.class,
-                () -> customerService.registerCustomer(customerRequestDTO)
-        );
-
-        assertEquals("Customer with this email already exists!", exception.getMessage());
-        verify(customerRepository, never()).save(any(Customer.class));
     }
 
     @Test

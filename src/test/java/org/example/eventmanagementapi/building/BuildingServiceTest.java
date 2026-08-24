@@ -44,6 +44,24 @@ public class BuildingServiceTest {
     }
 
     @Test
+    @DisplayName("Successfully create Building and map response DTO correctly using BuildingMapper")
+    void createBuilding_ShouldSucceed_AndMapFieldsCorrectly() {
+        BuildingRequestDTO request = new BuildingRequestDTO("Main Hall", "Sofia", "Center 1");
+        Building savedBuilding = new Building("Main Hall", "Sofia", "Center 1");
+        ReflectionTestUtils.setField(savedBuilding, "id", buildingId);
+
+        when(buildingRepository.save(any(Building.class))).thenReturn(savedBuilding);
+
+        BuildingResponseDTO response = buildingService.createBuilding(request);
+
+        assertNotNull(response);
+        assertEquals(buildingId, response.id());
+        assertEquals("Main Hall", response.name());
+        verify(buildingMapper, times(1)).toEntity(request);
+        verify(buildingMapper, times(1)).toResponseDTO(savedBuilding);
+    }
+
+    @Test
     @DisplayName("Throw BusinessLogicException when restoring a Buidling that is not Soft Deleted")
     void restoreBuilding_ShouldThrowException_WhenNotDeleted() {
         when(buildingRepository.findById(buildingId)).thenReturn(Optional.of(building));

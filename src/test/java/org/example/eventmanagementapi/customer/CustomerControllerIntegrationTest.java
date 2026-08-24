@@ -65,6 +65,6 @@ public class CustomerControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.message").value("Customer not found with ID: " + nonExistentId));
+                .andExpect(jsonPath("$.message").value("Customer not found"));
     }
 }

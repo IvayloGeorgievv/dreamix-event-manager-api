@@ -1,12 +1,13 @@
 package org.example.eventmanagementapi.ticket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.eventmanagementapi.auth.AuthService;
+import org.example.eventmanagementapi.auth.dto.RegisterRequestDTO;
 import org.example.eventmanagementapi.building.BuildingService;
 import org.example.eventmanagementapi.building.dto.BuildingRequestDTO;
 import org.example.eventmanagementapi.building.dto.BuildingResponseDTO;
-import org.example.eventmanagementapi.customer.CustomerService;
-import org.example.eventmanagementapi.customer.dto.CustomerRequestDTO;
-import org.example.eventmanagementapi.customer.dto.CustomerResponseDTO;
+import org.example.eventmanagementapi.customer.Customer;
+import org.example.eventmanagementapi.customer.CustomerRepository;
 import org.example.eventmanagementapi.event.EventService;
 import org.example.eventmanagementapi.event.dto.EventRequestDTO;
 import org.example.eventmanagementapi.event.dto.EventSummaryResponseDTO;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,14 +51,18 @@ public class TicketE2EIntegrationTest {
     private EventService eventService;
 
     @Autowired
-    private CustomerService customerService;
+    private AuthService authService;
+
+    @Autowired
+    private CustomerRepository customerRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
+    @WithMockUser
     @DisplayName("E2E: Buy Ticket flow -> Updates Event sold count -> Rejects duplicate seat booking")
     void buyTicketFlow_E2E() throws Exception {
-        // 1. Arrange DB entities през техните public Services
+        // 1. Arrange DB entities
         BuildingResponseDTO building = buildingService.createBuilding(
                 new BuildingRequestDTO("Arena Center", "Sofia", "Main Ave 1")
         );
@@ -69,12 +75,25 @@ public class TicketE2EIntegrationTest {
                 new EventRequestDTO("Rock Odyssey", BigDecimal.valueOf(75.0), LocalDateTime.now().plusDays(10), venue.id(), List.of())
         );
 
-        CustomerResponseDTO customer = customerService.registerCustomer(
-                new CustomerRequestDTO("Petar", "Dimitrov", "petar.e2e@example.com", "0899112233", "Shipka 5", "1000")
+        // Register customer via AuthService
+        authService.register(
+                new RegisterRequestDTO(
+                        "Petar",
+                        "Dimitrov",
+                        "petar.e2e@example.com",
+                        "StrongPass123!",
+                        "0899112233",
+                        "Shipka 5",
+                        "1000"
+                )
         );
-        TicketRequestDTO ticketRequest = new TicketRequestDTO(customer.id(), event.id(), "A-1");
 
-        // 2. Buy ticket via HTTP POST (E2E изпълнение през пълен стек)
+        Customer customer = customerRepository.findByEmailAndDeletedFalse("petar.e2e@example.com")
+                .orElseThrow();
+
+        TicketRequestDTO ticketRequest = new TicketRequestDTO(customer.getId(), event.id(), "A-1");
+
+        // 2. Buy ticket via HTTP POST
         mockMvc.perform(post("/api/tickets")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(ticketRequest)))
@@ -85,7 +104,7 @@ public class TicketE2EIntegrationTest {
                 .andExpect(jsonPath("$.customerName").value("Petar Dimitrov"))
                 .andExpect(jsonPath("$.pricePaid").value(75.0));
 
-        // 3. Опит за повторна покупка на същото място -> 409 Conflict
+        // Try to again buy the same place -> 409 Conflict
         mockMvc.perform(post("/api/tickets")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(ticketRequest)))

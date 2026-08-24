@@ -47,6 +47,7 @@ public class CustomerE2EIntegrationTest {
                 .andExpect(jsonPath("$.email").value("maria.e2e@example.com"))
                 .andReturn();
 
+        // Convert the returned HTTP response text to tree for easier search and get the id as String
         String customerId = objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asText();
 
         // 2. Retrieve the persisted customer (HTTP GET -> DB read)

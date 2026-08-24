@@ -58,7 +58,8 @@ public class PerformerServiceTest {
         assertEquals(performerId, response.id());
         assertEquals("The Rolling Notes", response.name());
 
-        verify(performerMapper, times(1)).toResponseDTO(any(Performer.class));
+        verify(performerMapper, times(1)).toEntity(request);
+        verify(performerMapper, times(1)).toResponseDTO(savedPerformer);
     }
 
     @Test
