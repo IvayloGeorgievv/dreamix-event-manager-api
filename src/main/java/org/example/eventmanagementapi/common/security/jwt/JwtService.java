@@ -23,6 +23,9 @@ public class JwtService {
     @Value("${application.security.jwt.expiration}")
     private long jwtExpiration;
 
+    @Value("${application.security.jwt.refresh-token.expiration}")
+    private long refreshExpiration;
+
     // Generates a signed JWT containing the customer's email, roles, and issued/expiration time
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
@@ -32,6 +35,16 @@ public class JwtService {
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .signWith(getSignInKey(), Jwts.SIG.HS256)
+                .compact();
+    }
+
+    // Generates a long-lived refresh token defining the maximum session duration
+    public String generateRefreshToken(UserDetails userDetails) {
+        return Jwts.builder()
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + refreshExpiration))
                 .signWith(getSignInKey(), Jwts.SIG.HS256)
                 .compact();
     }

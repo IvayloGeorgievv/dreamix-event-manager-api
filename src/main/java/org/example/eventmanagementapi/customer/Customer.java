@@ -42,6 +42,9 @@ public class Customer extends BaseEntity implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "refresh_token", length = 512)
+    private String refreshToken;
+
     @Column(table = "customer_profiles", name = "phone_number", length = 30)
     private String phoneNumber;
 

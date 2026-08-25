@@ -16,6 +16,8 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
     Optional<Customer> findByEmailAndDeletedFalse(String email);
 
+    Optional<Customer> findByRefreshTokenAndDeletedFalse(String refreshToken);
+
     boolean existsByIdAndDeletedFalse(UUID id);
 
     boolean existsByEmailAndDeletedFalse(String email);

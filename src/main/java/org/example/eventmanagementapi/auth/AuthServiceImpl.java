@@ -3,21 +3,29 @@ package org.example.eventmanagementapi.auth;
 import lombok.RequiredArgsConstructor;
 import org.example.eventmanagementapi.auth.dto.AuthResponseDTO;
 import org.example.eventmanagementapi.auth.dto.LoginRequestDTO;
+import org.example.eventmanagementapi.auth.dto.RefreshTokenDTO;
 import org.example.eventmanagementapi.auth.dto.RegisterRequestDTO;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.common.security.jwt.JwtService;
 import org.example.eventmanagementapi.customer.Customer;
 import org.example.eventmanagementapi.customer.CustomerRepository;
 import org.example.eventmanagementapi.customer.Role;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
+
+    @Value("${application.security.jwt.refresh-token.expiration}")
+    private long refreshExpiration;
 
     private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
@@ -38,7 +46,9 @@ public class AuthServiceImpl implements AuthService {
 
         Customer savedCustomer = customerRepository.save(customer);
         String jwtToken = jwtService.generateToken(savedCustomer);
-        return new AuthResponseDTO(jwtToken);
+        String refreshToken = jwtService.generateRefreshToken(savedCustomer);
+
+        return new AuthResponseDTO(jwtToken, refreshToken);
     }
 
     @Override
@@ -54,6 +64,28 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new BusinessLogicException("Invalid email or password"));
 
         String jwtToken = jwtService.generateToken(customer);
-        return new AuthResponseDTO(jwtToken);
+        // Updates the customer's stored refresh token for the new login session
+        String refreshToken = jwtService.generateRefreshToken(customer);
+
+        return new AuthResponseDTO(jwtToken, refreshToken);
+    }
+
+    @Override
+    @Transactional
+    public AuthResponseDTO refreshToken(RefreshTokenDTO request) {
+        String refreshToken = request.refreshToken();
+
+        // Locate customer by matching active stored refresh token
+        Customer customer = customerRepository.findByRefreshTokenAndDeletedFalse(refreshToken)
+                .orElseThrow(() -> new BusinessLogicException("Invalid or revoked refresh token!"));
+
+        // Validate cryptographic signature and expiration timestamp
+        if (!jwtService.isTokenValid(refreshToken, customer)) {
+            throw new BusinessLogicException("Refresh token has expired! Please log in again.");
+        }
+
+        // Issue a new access token while keeping the same refresh token until it expires
+        String newAccessToken = jwtService.generateToken(customer);
+        return new AuthResponseDTO(newAccessToken, refreshToken);
     }
 }
