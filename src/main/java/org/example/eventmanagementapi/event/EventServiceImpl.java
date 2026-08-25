@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -83,7 +84,7 @@ public class EventServiceImpl implements EventService{
 
     @Override
     public List<EventSummaryResponseDTO> getUpcomingEvents() {
-        return eventRepository.findUpcoming(LocalDateTime.now()).stream()
+        return eventRepository.findUpcoming(LocalDateTime.now(ZoneOffset.UTC)).stream()
                 .map(eventMapper::toSummaryResponseDTO)
                 .toList();
     }
@@ -98,7 +99,7 @@ public class EventServiceImpl implements EventService{
 
     @Override
     public List<EventSummaryResponseDTO> getAvailableEvents() {
-        return eventRepository.findAvailable(LocalDateTime.now()).stream()
+        return eventRepository.findAvailable(LocalDateTime.now(ZoneOffset.UTC)).stream()
                 .map(eventMapper::toSummaryResponseDTO)
                 .toList();
     }
@@ -108,7 +109,7 @@ public class EventServiceImpl implements EventService{
     public EventResponseDTO updateEvent(UUID id, EventRequestDTO request) {
         Event event = getEventEntityById(id);
 
-        if (request.dateAndTime().isBefore(LocalDateTime.now())) {
+        if (request.dateAndTime().isBefore(LocalDateTime.now(ZoneOffset.UTC))) {
             throw new BusinessLogicException("Cannot update event date to a past date");
         }
 

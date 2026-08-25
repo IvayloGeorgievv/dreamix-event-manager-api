@@ -10,6 +10,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Map;
 import java.util.function.Function;
@@ -28,23 +30,25 @@ public class JwtService {
 
     // Generates a signed JWT containing the customer's email, roles, and issued/expiration time
     public String generateToken(UserDetails userDetails) {
+        Instant now = Instant.now();
         return Jwts.builder()
                 .claims(Map.of("roles", userDetails.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .toList()))
                 .subject(userDetails.getUsername())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plus(jwtExpiration, ChronoUnit.MILLIS)))
                 .signWith(getSignInKey(), Jwts.SIG.HS256)
                 .compact();
     }
 
     // Generates a long-lived refresh token defining the maximum session duration
     public String generateRefreshToken(UserDetails userDetails) {
+        Instant now = Instant.now();
         return Jwts.builder()
                 .subject(userDetails.getUsername())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + refreshExpiration))
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plus(refreshExpiration, ChronoUnit.MILLIS)))
                 .signWith(getSignInKey(), Jwts.SIG.HS256)
                 .compact();
     }
@@ -68,7 +72,7 @@ public class JwtService {
 
     // Checks whether the token's expiration timestamp is before the current system time
     public boolean isTokenExpired(String token) {
-        return extractClaim(token, Claims::getExpiration).before(new Date());
+        return extractClaim(token, Claims::getExpiration).toInstant().isBefore(Instant.now());
     }
 
     // Verifies the signature with the secret key, decodes the JWT, and returns the claims payload

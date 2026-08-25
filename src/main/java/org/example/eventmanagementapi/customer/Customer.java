@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.eventmanagementapi.common.model.BaseEntity;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -42,15 +43,19 @@ public class Customer extends BaseEntity implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    @Nullable
     @Column(name = "refresh_token", length = 512)
     private String refreshToken;
 
+    @Nullable
     @Column(table = "customer_profiles", name = "phone_number", length = 30)
     private String phoneNumber;
 
+    @Nullable
     @Column(table = "customer_profiles", name = "address", length = 200)
     private String address;
 
+    @Nullable
     @Column(table = "customer_profiles", name = "postal_code", length = 20)
     private String postalCode;
 
@@ -60,17 +65,6 @@ public class Customer extends BaseEntity implements UserDetails {
         this.email = email;
         this.password = password;
         this.role = role;
-    }
-
-    public Customer(String firstName, String lastName, String email, String password, Role role, String phoneNumber, String address, String postalCode) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
-        this.role = role;
-        this.phoneNumber = phoneNumber;
-        this.address = address;
-        this.postalCode = postalCode;
     }
 
     // Returns list of assigned roles for Spring Security permission checks

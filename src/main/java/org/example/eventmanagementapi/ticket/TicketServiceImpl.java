@@ -18,6 +18,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -130,7 +131,7 @@ public class TicketServiceImpl implements TicketService {
 
     //private validation helper
     private void validateTicketPurchase(Event event, String seatNumber) {
-        if (!event.getDateAndTime().isAfter(LocalDateTime.now())) {
+        if (!event.getDateAndTime().isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
             throw new BusinessLogicException("Cannot buy a ticket for a past event!");
         }
         if (event.getSoldTicketsCount() >= event.getVenue().getCapacity()) {

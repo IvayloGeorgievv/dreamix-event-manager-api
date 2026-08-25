@@ -2,7 +2,6 @@ package org.example.eventmanagementapi.ticket;
 
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

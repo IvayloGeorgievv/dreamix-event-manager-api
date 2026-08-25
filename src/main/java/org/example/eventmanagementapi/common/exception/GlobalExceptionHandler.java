@@ -18,7 +18,8 @@ import java.util.regex.Pattern;
 public class GlobalExceptionHandler {
 
     // Regex finding " with ID: <uuid>", ": <uuid>" so they can be escaped
-    private static final Pattern UUID_PATTERN = Pattern.compile("(?i)(\\s*(with\\s*id[:\\s]*|[:\\s]+)?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\s*)");
+    // Simple, non-backtracking pattern strictly matching 36-character UUID format
+    private static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleResourceNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
@@ -93,12 +94,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
-    //private helper: Used to sanitize the Exception message from the UUID and still keep it explanatory
+    // private helper: Used to sanitize the Exception message from the UUID and still keep it explanatory
     private String sanitizeExceptionMessage(String message) {
         if (message == null || message.isBlank()) {
             return "The requested resource was not found";
         }
-        String sanitized = UUID_PATTERN.matcher(message).replaceAll("").trim();
+        String sanitized = UUID_PATTERN.matcher(message)
+                .replaceAll("")
+                .replace("with ID:", "")
+                .replace("with ID", "")
+                .trim();
         return sanitized.isEmpty() ? "The requested resource was not found" : sanitized;
     }
 }

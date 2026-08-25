@@ -21,6 +21,8 @@ import java.util.UUID;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RequestLoggingFilter extends OncePerRequestFilter {
 
+    private static final String LOG_PREFIX = "<--- {}";
+
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -54,11 +56,11 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             );
 
             if (status >= 500) {
-                log.error("<--- {}", logMessage);
+                log.error(LOG_PREFIX, logMessage);
             } else if (status >= 400) {
-                log.warn("<--- {}", logMessage);
+                log.warn(LOG_PREFIX, logMessage);
             } else {
-                log.info("<--- {}", logMessage);
+                log.info(LOG_PREFIX, logMessage);
             }
         }
     }

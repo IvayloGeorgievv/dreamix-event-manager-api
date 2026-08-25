@@ -87,12 +87,6 @@ public class CustomerServiceImpl implements CustomerService {
         return customerMapper.toResponseDTO(customer);
     }
 
-    private void validateEmailUniqueness(String email) {
-        if (customerRepository.existsByEmailAndDeletedFalse(email)) {
-            throw new BusinessLogicException("Customer with this email already exists!");
-        }
-    }
-
     private void validateEmailUniquenessForUpdate(String currentEmail, String newEmail) {
         if (!currentEmail.equalsIgnoreCase(newEmail) && customerRepository.existsByEmailAndDeletedFalse(newEmail)) {
             throw new BusinessLogicException("Customer with this email already exists!");

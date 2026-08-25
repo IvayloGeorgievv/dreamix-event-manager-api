@@ -36,8 +36,12 @@ public class ApplicationSecurityConfig {
 
     // Exposes Spring's central AuthenticationManager bean to process authentication attempts during login
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) {
+        try {
+            return configuration.getAuthenticationManager();
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to configure AuthenticationManager", ex);
+        }
     }
 
     // Defines BCrypt as the standard password hashing algorithm for storing and verifying credentials
