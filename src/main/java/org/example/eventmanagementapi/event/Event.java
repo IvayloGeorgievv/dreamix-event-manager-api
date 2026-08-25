@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Entity
+@Table(name = "event")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Setter

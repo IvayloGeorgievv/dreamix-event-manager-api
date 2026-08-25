@@ -17,8 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.util.UUID;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -41,17 +40,21 @@ public class AuthServiceImpl implements AuthService {
         }
 
         Customer customer = authMapper.toCustomer(request);
-        customer.setPassword(passwordEncoder.encode(request.password()));
+        customer.setPassword(Objects.requireNonNull(passwordEncoder.encode(request.password())));
         customer.setRole(Role.ROLE_CUSTOMER);
 
-        Customer savedCustomer = customerRepository.save(customer);
-        String jwtToken = jwtService.generateToken(savedCustomer);
-        String refreshToken = jwtService.generateRefreshToken(savedCustomer);
+        String jwtToken = jwtService.generateToken(customer);
+        String refreshToken = jwtService.generateRefreshToken(customer);
+
+        customer.setRefreshToken(refreshToken);
+        customerRepository.save(customer);
+
 
         return new AuthResponseDTO(jwtToken, refreshToken);
     }
 
     @Override
+    @Transactional
     public AuthResponseDTO login(LoginRequestDTO request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -66,6 +69,9 @@ public class AuthServiceImpl implements AuthService {
         String jwtToken = jwtService.generateToken(customer);
         // Updates the customer's stored refresh token for the new login session
         String refreshToken = jwtService.generateRefreshToken(customer);
+
+        customer.setRefreshToken(refreshToken);
+        customerRepository.save(customer);
 
         return new AuthResponseDTO(jwtToken, refreshToken);
     }

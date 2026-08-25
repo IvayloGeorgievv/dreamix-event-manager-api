@@ -16,7 +16,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "customers")
+@Table(name = "customer")
 @SecondaryTable(
         name = "customer_profiles",
         pkJoinColumns = @PrimaryKeyJoinColumn(name = "customer_id")

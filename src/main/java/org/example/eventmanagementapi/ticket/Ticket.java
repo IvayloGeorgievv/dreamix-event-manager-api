@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(
-        name = "tickets",
+        name = "ticket",
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_event_seat",
                 columnNames = {"event_id", "seat_number"}

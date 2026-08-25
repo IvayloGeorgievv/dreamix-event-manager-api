@@ -8,7 +8,7 @@ import lombok.Setter;
 import org.example.eventmanagementapi.common.model.BaseEntity;
 
 @Entity
-@Table(name = "performers")
+@Table(name = "performer")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Setter
