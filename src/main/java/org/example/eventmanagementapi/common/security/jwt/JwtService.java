@@ -1,92 +1,26 @@
 package org.example.eventmanagementapi.common.security.jwt;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKey;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.Map;
+import java.util.List;
 import java.util.function.Function;
 
-@Service
-public class JwtService {
+public interface JwtService {
 
-    @Value("${application.security.jwt.secret-key}")
-    private String secretKey;
+    String generateToken(UserDetails userDetails, int tokenVersion);
 
-    @Value("${application.security.jwt.expiration}")
-    private long jwtExpiration;
+    String generateRefreshToken(UserDetails userDetails, int tokenVersion);
 
-    @Value("${application.security.jwt.refresh-token.expiration}")
-    private long refreshExpiration;
+    String extractUsername(String token);
 
-    // Generates a signed JWT containing the customer's email, roles, and issued/expiration time
-    public String generateToken(UserDetails userDetails) {
-        Instant now = Instant.now();
-        return Jwts.builder()
-                .claims(Map.of("roles", userDetails.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .toList()))
-                .subject(userDetails.getUsername())
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plus(jwtExpiration, ChronoUnit.MILLIS)))
-                .signWith(getSignInKey(), Jwts.SIG.HS256)
-                .compact();
-    }
+    List<String> extractRoles(String token);
 
-    // Generates a long-lived refresh token defining the maximum session duration
-    public String generateRefreshToken(UserDetails userDetails) {
-        Instant now = Instant.now();
-        return Jwts.builder()
-                .subject(userDetails.getUsername())
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plus(refreshExpiration, ChronoUnit.MILLIS)))
-                .signWith(getSignInKey(), Jwts.SIG.HS256)
-                .compact();
-    }
+    Integer extractTokenVersion(String token);
 
-    // Retrieves the subject claim (the customer's email) stored inside the token payload
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
-    }
+    <T> T extractClaim(String token, Function<Claims, T> claimsResolver);
 
-    // Generic claim extractor that parses the token claims
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
-    }
+    boolean isTokenValid(String token);
 
-    // Validates that the token username matches the user and that the token has not expired
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return username.equalsIgnoreCase(userDetails.getUsername()) && !isTokenExpired(token);
-    }
-
-    // Checks whether the token's expiration timestamp is before the current system time
-    public boolean isTokenExpired(String token) {
-        return extractClaim(token, Claims::getExpiration).toInstant().isBefore(Instant.now());
-    }
-
-    // Verifies the signature with the secret key, decodes the JWT, and returns the claims payload
-    private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSignInKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-    }
-
-    // Decodes the Base64 secret key into an HMAC-SHA256 SecretKey object
-    private SecretKey getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
+    boolean isTokenExpired(String token);
 }

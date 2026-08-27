@@ -27,6 +27,7 @@ public class SecurityFilterChainConfig {
     @SuppressWarnings("java:S4502") // Disabling SonarQube Warning for disabling CSRF
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
+                // When we would need CSRF?
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(

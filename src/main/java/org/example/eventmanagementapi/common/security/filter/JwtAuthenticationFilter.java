@@ -7,23 +7,28 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.example.eventmanagementapi.auth.RefreshTokenRedisService;
 import org.example.eventmanagementapi.common.security.jwt.JwtService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final String BEARER_PREFIX = "Bearer ";
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
+    private final RefreshTokenRedisService refreshTokenRedisService;
 
     // Intercepts every incoming HTTP request to extract, validate the Bearer JWT, and set authentication in context
     @Override
@@ -33,33 +38,43 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7);
+        final String jwt = authHeader.replace(BEARER_PREFIX, "").trim();
         try {
-            userEmail = jwtService.extractUsername(jwt);
+            if (jwtService.isTokenValid(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {
+                String userEmail = jwtService.extractUsername(jwt);
+                Integer tokenVersion = jwtService.extractTokenVersion(jwt);
 
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+                if (tokenVersion != null && refreshTokenRedisService.isTokenVersionValid(userEmail, tokenVersion)) {
+                    List<SimpleGrantedAuthority> authorities = jwtService.extractRoles(jwt).stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .toList();
 
-                if (jwtService.isTokenValid(jwt, userDetails)) {
+                    // Fully stateless: Constructed purely from validated JWT claims without DB queries
+                    UserDetails principal = User.builder()
+                            .username(userEmail)
+                            .password("")
+                            .authorities(authorities)
+                            .build();
+
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
+                            principal,
                             null,
-                            userDetails.getAuthorities()
+                            authorities
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    SecurityContextHolder.clearContext();
                 }
             }
-        } catch(Exception exception) {
+        } catch (Exception exception) {
             SecurityContextHolder.clearContext();
         }
 

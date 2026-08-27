@@ -12,19 +12,19 @@ import org.springframework.context.annotation.Configuration;
 public class OpenApiConfig {
 
     // Configures OpenAPI/Swagger with metadata and adds the global Bearer JWT authorization button
-    @Bean
-    public OpenAPI customOpenAPI() {
-        final String securitySchemeName = "bearerAuth";
+    private static final String SECURITY_SCHEME_NAME = "BearerAuth";
 
+    @Bean
+    public OpenAPI openAPI() {
         return new OpenAPI()
                 .info(new Info()
                         .title("Event Management API")
-                        .version("1.0")
-                        .description("Event Management REST API documentation"))
-                .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+                        .description("REST API with Stateless JWT Authentication and Redis Refresh Token Management")
+                        .version("1.0.0"))
+                .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
                 .components(new Components()
-                        .addSecuritySchemes(securitySchemeName, new SecurityScheme()
-                                .name(securitySchemeName)
+                        .addSecuritySchemes(SECURITY_SCHEME_NAME, new SecurityScheme()
+                                .name(SECURITY_SCHEME_NAME)
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("bearer")
                                 .bearerFormat("JWT")));
