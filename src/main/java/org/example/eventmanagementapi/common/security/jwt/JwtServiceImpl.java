@@ -1,6 +1,7 @@
 package org.example.eventmanagementapi.common.security.jwt;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -100,24 +101,36 @@ public class JwtServiceImpl implements JwtService {
     // Validates that the token username matches the user and that the token has not expired
     @Override
     public boolean isTokenValid(String token) {
-        return !isTokenExpired(token);
+        try {
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // Checks whether the token's expiration timestamp is before the current system time
     @Override
     public boolean isTokenExpired(String token) {
-        return extractClaim(token, Claims::getExpiration).toInstant().isBefore(Instant.now());
+        try {
+            return extractClaim(token, Claims::getExpiration).toInstant().isBefore(Instant.now());
+        } catch (ExpiredJwtException ex) {
+            return true;
+        }
     }
 
     // Verifies the signature with the secret key, decodes the JWT, and returns the claims payload
     private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSignInKey())
-                .requireIssuer(issuer)
-                .requireAudience(audience)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        try {
+            return Jwts.parser()
+                    .verifyWith(getSignInKey())
+                    .requireIssuer(issuer)
+                    .requireAudience(audience)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (ExpiredJwtException ex) {
+            return ex.getClaims();
+        }
     }
 
     // Decodes the Base64 secret key into an HMAC-SHA256 SecretKey object

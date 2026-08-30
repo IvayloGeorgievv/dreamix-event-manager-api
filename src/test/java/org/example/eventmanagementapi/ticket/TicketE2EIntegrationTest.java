@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-public class TicketE2EIntegrationTest {
+class TicketE2EIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -81,10 +81,7 @@ public class TicketE2EIntegrationTest {
                         "Petar",
                         "Dimitrov",
                         "petar.e2e@example.com",
-                        "StrongPass123!",
-                        "0899112233",
-                        "Shipka 5",
-                        "1000"
+                        "StrongPass123!"
                 )
         );
 

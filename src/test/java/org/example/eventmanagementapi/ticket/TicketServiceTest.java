@@ -41,7 +41,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class TicketServiceTest {
+class TicketServiceTest {
 
     @Mock
     private TicketRepository ticketRepository;
@@ -82,10 +82,7 @@ public class TicketServiceTest {
                 "Doe",
                 "john@gmail.com",
                 "password123!",
-                Role.ROLE_CUSTOMER,
-                "0888123456",
-                "Street 1",
-                "1000"
+                Role.ROLE_CUSTOMER
         );
         ReflectionTestUtils.setField(customer, "id", customerId);
 

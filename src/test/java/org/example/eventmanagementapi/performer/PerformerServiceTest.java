@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class PerformerServiceTest {
+class PerformerServiceTest {
 
     @Mock
     private PerformerRepository performerRepository;

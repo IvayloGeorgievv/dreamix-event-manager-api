@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 // Autoconfigures MockMvc to simulate HTTP requests without starting a web server
 @AutoConfigureMockMvc
-public class TicketControllerIntegrationTest {
+class TicketControllerIntegrationTest {
     // Autowired is needed to inject the Spring Beans directly from application context into the test
     // Executes and tests mock HTTP requests against controllers without starting a real network server.
     @Autowired

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.example.eventmanagementapi.common.exception.ResourceNotFoundException;
 import org.example.eventmanagementapi.event.dto.EventRequestDTO;
-import org.example.eventmanagementapi.event.dto.EventResponseDTO;
 import org.example.eventmanagementapi.event.dto.EventSummaryResponseDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class EventControllerIntegrationTest {
+class EventControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

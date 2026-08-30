@@ -20,14 +20,5 @@ public record RegisterRequestDTO(
 
         @NotBlank(message = "Password is required")
         @Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
-        String password,
-
-        @Size(max = 30)
-        String phoneNumber,
-
-        @Size(max = 200)
-        String addressLine,
-
-        @Size(max = 20)
-        String postalCode
+        String password
 ) {}

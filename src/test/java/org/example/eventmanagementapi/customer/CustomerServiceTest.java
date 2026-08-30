@@ -1,9 +1,7 @@
 package org.example.eventmanagementapi.customer;
 
-import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.common.exception.ResourceNotFoundException;
 import org.example.eventmanagementapi.customer.dto.CustomerRequestDTO;
-import org.example.eventmanagementapi.customer.dto.CustomerResponseDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,11 +17,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class CustomerServiceTest {
+class CustomerServiceTest {
 
     @Mock
     private CustomerRepository customerRepository;
@@ -55,10 +52,7 @@ public class CustomerServiceTest {
                 customerRequestDTO.lastName(),
                 customerRequestDTO.email(),
                 "encodedPassword123!",
-                Role.ROLE_CUSTOMER,
-                customerRequestDTO.phoneNumber(),
-                customerRequestDTO.addressLine(),
-                customerRequestDTO.postalCode()
+                Role.ROLE_CUSTOMER
         );
         ReflectionTestUtils.setField(customer, "id", customerId);
     }
