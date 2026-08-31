@@ -1,7 +1,6 @@
-package org.example.eventmanagementapi.customer;
+package org.example.eventmanagementapi.user;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,7 +24,7 @@ import java.util.List;
 @Getter
 @Setter
 @NullMarked
-public class Customer extends BaseEntity implements UserDetails {
+public class User extends BaseEntity implements UserDetails {
 
     @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;
@@ -59,7 +58,7 @@ public class Customer extends BaseEntity implements UserDetails {
     @Column(table = "customer_profiles", name = "postal_code", length = 20)
     private String postalCode;
 
-    public Customer(String firstName, String lastName, String email, String password, Role role) {
+    public User(String firstName, String lastName, String email, String password, Role role) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;

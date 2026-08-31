@@ -3,6 +3,7 @@ package org.example.eventmanagementapi.auth.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.example.eventmanagementapi.common.validation.ValidPassword;
 
 public record RegisterRequestDTO(
         @NotBlank(message = "First name is required")
@@ -19,6 +20,6 @@ public record RegisterRequestDTO(
         String email,
 
         @NotBlank(message = "Password is required")
-        @Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
+        @ValidPassword
         String password
 ) {}

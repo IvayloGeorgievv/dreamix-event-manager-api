@@ -1,7 +1,7 @@
 package org.example.eventmanagementapi.common.security.config;
 
 import lombok.RequiredArgsConstructor;
-import org.example.eventmanagementapi.customer.CustomerRepository;
+import org.example.eventmanagementapi.user.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,7 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RequiredArgsConstructor
 public class ApplicationSecurityConfig {
 
-    private final CustomerRepository customerRepository;
+    private final UserRepository customerRepository;
 
     // Defines how Spring Security fetches the user entity and authorities from the database by email
     @Bean

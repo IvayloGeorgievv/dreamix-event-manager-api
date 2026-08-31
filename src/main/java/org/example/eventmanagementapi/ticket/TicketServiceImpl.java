@@ -1,11 +1,11 @@
 package org.example.eventmanagementapi.ticket;
 
-import org.example.eventmanagementapi.customer.CustomerService;
+import org.example.eventmanagementapi.user.UserService;
+import org.example.eventmanagementapi.user.User;
 import org.example.eventmanagementapi.event.EventDeletedEvent;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.common.exception.ResourceNotFoundException;
 import org.example.eventmanagementapi.event.EventService;
-import org.example.eventmanagementapi.customer.Customer;
 import org.example.eventmanagementapi.event.Event;
 import org.example.eventmanagementapi.ticket.dto.CustomerTicketResponseDTO;
 import org.example.eventmanagementapi.ticket.dto.TicketRequestDTO;
@@ -29,7 +29,7 @@ public class TicketServiceImpl implements TicketService {
 
     private final TicketRepository ticketRepository;
 
-    private final CustomerService customerService;
+    private final UserService customerService;
     private final EventService eventService;
 
     private final TicketMapper ticketMapper;
@@ -37,7 +37,7 @@ public class TicketServiceImpl implements TicketService {
     @Override
     @Transactional
     public TicketResponseDTO buyTicket(TicketRequestDTO request) {
-        Customer customer = customerService.getCustomerEntityById(request.customerId());
+        User customer = customerService.getCustomerEntityById(request.customerId());
         Event event = eventService.getEventEntityById(request.eventId());
 
         validateTicketPurchase(event, request.seatNumber());

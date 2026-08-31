@@ -1,7 +1,7 @@
-package org.example.eventmanagementapi.customer;
+package org.example.eventmanagementapi.user;
 
-import org.example.eventmanagementapi.customer.dto.CustomerRequestDTO;
-import org.example.eventmanagementapi.customer.dto.CustomerResponseDTO;
+import org.example.eventmanagementapi.user.dto.UserRequestDTO;
+import org.example.eventmanagementapi.user.dto.UserResponseDTO;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -14,23 +14,23 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/customers")
 @RequiredArgsConstructor
-public class CustomerController {
+public class UserController {
 
-    private final CustomerService customerService;
+    private final UserService customerService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<CustomerResponseDTO> getCustomerById(@PathVariable UUID id) {
+    public ResponseEntity<UserResponseDTO> getCustomerById(@PathVariable UUID id) {
         return ResponseEntity.ok(customerService.getCustomerById(id));
     }
 
     @GetMapping
-    public ResponseEntity<List<CustomerResponseDTO>> getAllCustomers(
+    public ResponseEntity<List<UserResponseDTO>> getAllCustomers(
             @RequestParam(name = "includeDeleted", defaultValue = "false") boolean includeDeleted) {
         return ResponseEntity.ok(customerService.getAllCustomers(includeDeleted));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CustomerResponseDTO> updateCustomer(@PathVariable UUID id, @Valid @RequestBody CustomerRequestDTO request) {
+    public ResponseEntity<UserResponseDTO> updateCustomer(@PathVariable UUID id, @Valid @RequestBody UserRequestDTO request) {
         return ResponseEntity.ok(customerService.updateCustomer(id, request));
     }
 
@@ -50,7 +50,7 @@ public class CustomerController {
     }
 
     @PatchMapping("/{id}/restore")
-    public ResponseEntity<CustomerResponseDTO> restoreCustomer(@PathVariable UUID id) {
+    public ResponseEntity<UserResponseDTO> restoreCustomer(@PathVariable UUID id) {
         return ResponseEntity.ok(customerService.restoreCustomer(id));
     }
 }

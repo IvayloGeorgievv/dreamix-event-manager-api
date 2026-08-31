@@ -1,10 +1,10 @@
-package org.example.eventmanagementapi.customer.dto;
+package org.example.eventmanagementapi.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record CustomerRequestDTO(
+public record UserRequestDTO(
         @NotBlank(message = "First name is required")
         @Size(max = 100)
         String firstName,

@@ -1,8 +1,8 @@
-package org.example.eventmanagementapi.customer.dto;
+package org.example.eventmanagementapi.user.dto;
 
 import java.util.UUID;
 
-public record CustomerResponseDTO(
+public record UserResponseDTO(
         UUID id,
         String firstName,
         String lastName,

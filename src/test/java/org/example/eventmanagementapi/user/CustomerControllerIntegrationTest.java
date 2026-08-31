@@ -1,7 +1,7 @@
-package org.example.eventmanagementapi.customer;
+package org.example.eventmanagementapi.user;
 
 import org.example.eventmanagementapi.common.exception.ResourceNotFoundException;
-import org.example.eventmanagementapi.customer.dto.CustomerResponseDTO;
+import org.example.eventmanagementapi.user.dto.UserResponseDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +26,13 @@ class CustomerControllerIntegrationTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private CustomerService customerService;
+    private UserService customerService;
 
     @Test
     @DisplayName("GET /api/customers/{id} - Successfully retrieve customer by ID")
     void getCustomerById_ShouldReturnCustomer_WhenFound() throws Exception {
         UUID customerId = UUID.randomUUID();
-        CustomerResponseDTO responseDTO = new CustomerResponseDTO(
+        UserResponseDTO responseDTO = new UserResponseDTO(
                 customerId,
                 "Alice",
                 "Smith",

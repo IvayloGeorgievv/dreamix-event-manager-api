@@ -1,4 +1,4 @@
-package org.example.eventmanagementapi.customer;
+package org.example.eventmanagementapi.user;
 
 public enum Role {
     ROLE_CUSTOMER,

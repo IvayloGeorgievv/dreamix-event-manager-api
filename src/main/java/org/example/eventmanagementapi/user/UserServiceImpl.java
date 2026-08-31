@@ -1,10 +1,10 @@
-package org.example.eventmanagementapi.customer;
+package org.example.eventmanagementapi.user;
 
 import lombok.RequiredArgsConstructor;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.common.exception.ResourceNotFoundException;
-import org.example.eventmanagementapi.customer.dto.CustomerRequestDTO;
-import org.example.eventmanagementapi.customer.dto.CustomerResponseDTO;
+import org.example.eventmanagementapi.user.dto.UserRequestDTO;
+import org.example.eventmanagementapi.user.dto.UserResponseDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,29 +14,29 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class CustomerServiceImpl implements CustomerService {
+public class UserServiceImpl implements UserService {
 
-    private final CustomerRepository customerRepository;
+    private final UserRepository customerRepository;
 
-    private final CustomerMapper customerMapper;
+    private final UserMapper customerMapper;
 
 
     @Override
-    public CustomerResponseDTO getCustomerById(UUID customerId) {
+    public UserResponseDTO getCustomerById(UUID customerId) {
         return customerMapper.toResponseDTO(getCustomerEntityById(customerId));
     }
 
 
     @Override
-    public Customer getCustomerEntityById(UUID customerId) {
+    public User getCustomerEntityById(UUID customerId) {
         return customerRepository.findByIdAndDeletedFalse(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found with ID: " + customerId));
     }
 
 
     @Override
-    public List<CustomerResponseDTO> getAllCustomers(boolean includeDeleted) {
-        List<Customer> customers = includeDeleted
+    public List<UserResponseDTO> getAllCustomers(boolean includeDeleted) {
+        List<User> customers = includeDeleted
                 ? customerRepository.findAll()
                 : customerRepository.findAllByDeletedFalse();
 
@@ -48,8 +48,8 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
-    public CustomerResponseDTO updateCustomer(UUID customerId, CustomerRequestDTO request) {
-        Customer customer = getCustomerEntityById(customerId);
+    public UserResponseDTO updateCustomer(UUID customerId, UserRequestDTO request) {
+        User customer = getCustomerEntityById(customerId);
         validateEmailUniquenessForUpdate(customer.getEmail(), request.email());
 
         customerMapper.updateCustomerFromDto(request, customer);
@@ -60,7 +60,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public void softDeleteCustomer(UUID customerId) {
-        Customer customer = getCustomerEntityById(customerId);
+        User customer = getCustomerEntityById(customerId);
         customer.setDeleted(true);
     }
 
@@ -75,8 +75,8 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
-    public CustomerResponseDTO restoreCustomer(UUID customerId) {
-        Customer customer = customerRepository.findById(customerId)
+    public UserResponseDTO restoreCustomer(UUID customerId) {
+        User customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found with ID: " + customerId));
 
         if (!customer.isDeleted()) {

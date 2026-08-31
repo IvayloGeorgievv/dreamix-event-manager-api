@@ -6,9 +6,9 @@ import org.example.eventmanagementapi.auth.dto.RefreshTokenDTO;
 import org.example.eventmanagementapi.auth.dto.RegisterRequestDTO;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.common.security.jwt.JwtService;
-import org.example.eventmanagementapi.customer.Customer;
-import org.example.eventmanagementapi.customer.CustomerRepository;
-import org.example.eventmanagementapi.customer.Role;
+import org.example.eventmanagementapi.user.User;
+import org.example.eventmanagementapi.user.UserRepository;
+import org.example.eventmanagementapi.user.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
 class AuthServiceTest {
 
     @Mock
-    private CustomerRepository customerRepository;
+    private UserRepository customerRepository;
 
     @Mock
     private RefreshTokenRedisService refreshTokenRedisService;
@@ -51,11 +51,11 @@ class AuthServiceTest {
     @InjectMocks
     private AuthServiceImpl authService;
 
-    private Customer customer;
+    private User customer;
 
     @BeforeEach
     void setUp() {
-        customer = new Customer();
+        customer = new User();
         customer.setEmail("john@example.com");
         customer.setPassword("encodedPassword");
         customer.setRole(Role.ROLE_CUSTOMER);

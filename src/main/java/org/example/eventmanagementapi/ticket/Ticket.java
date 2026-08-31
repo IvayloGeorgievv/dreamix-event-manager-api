@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.eventmanagementapi.common.model.BaseEntity;
-import org.example.eventmanagementapi.customer.Customer;
+import org.example.eventmanagementapi.user.User;
 import org.example.eventmanagementapi.event.Event;
 
 import java.math.BigDecimal;
@@ -26,7 +26,7 @@ public class Ticket extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
-    private Customer customer;
+    private User customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", nullable = false)
@@ -38,7 +38,7 @@ public class Ticket extends BaseEntity {
     @Column(name = "price_paid", nullable = false, updatable = false, precision = 10, scale = 2)
     private BigDecimal pricePaid;
 
-    public Ticket(Customer customer, Event event, String seatNumber) {
+    public Ticket(User customer, Event event, String seatNumber) {
         this.customer = customer;
         this.event = event;
         this.seatNumber = seatNumber;

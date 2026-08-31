@@ -1,7 +1,7 @@
-package org.example.eventmanagementapi.customer;
+package org.example.eventmanagementapi.user;
 
 import org.example.eventmanagementapi.common.exception.ResourceNotFoundException;
-import org.example.eventmanagementapi.customer.dto.CustomerRequestDTO;
+import org.example.eventmanagementapi.user.dto.UserRequestDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,22 +23,22 @@ import static org.mockito.Mockito.*;
 class CustomerServiceTest {
 
     @Mock
-    private CustomerRepository customerRepository;
+    private UserRepository customerRepository;
 
     @Spy
-    private CustomerMapper customerMapper = Mappers.getMapper(CustomerMapper.class);
+    private UserMapper customerMapper = Mappers.getMapper(UserMapper.class);
 
     @InjectMocks
-    private CustomerServiceImpl customerService;
+    private UserServiceImpl customerService;
 
     private UUID customerId;
-    private CustomerRequestDTO customerRequestDTO;
-    private Customer customer;
+    private UserRequestDTO customerRequestDTO;
+    private User customer;
 
     @BeforeEach
     void setUp() {
         customerId = UUID.randomUUID();
-        customerRequestDTO = new CustomerRequestDTO(
+        customerRequestDTO = new UserRequestDTO(
                 "John",
                 "Doe",
                 "john@gmail.com",
@@ -47,7 +47,7 @@ class CustomerServiceTest {
                 "1000"
         );
 
-        customer = new Customer(
+        customer = new User(
                 customerRequestDTO.firstName(),
                 customerRequestDTO.lastName(),
                 customerRequestDTO.email(),

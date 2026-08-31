@@ -1,7 +1,7 @@
 package org.example.eventmanagementapi.auth;
 
 import org.example.eventmanagementapi.auth.dto.RegisterRequestDTO;
-import org.example.eventmanagementapi.customer.Customer;
+import org.example.eventmanagementapi.user.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -15,5 +15,5 @@ public interface AuthMapper {
     @Mapping(target = "deleted", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "role", ignore = true)
-    Customer toCustomer(RegisterRequestDTO dto);
+    User toCustomer(RegisterRequestDTO dto);
 }

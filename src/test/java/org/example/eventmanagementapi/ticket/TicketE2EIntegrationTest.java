@@ -6,8 +6,8 @@ import org.example.eventmanagementapi.auth.dto.RegisterRequestDTO;
 import org.example.eventmanagementapi.building.BuildingService;
 import org.example.eventmanagementapi.building.dto.BuildingRequestDTO;
 import org.example.eventmanagementapi.building.dto.BuildingResponseDTO;
-import org.example.eventmanagementapi.customer.Customer;
-import org.example.eventmanagementapi.customer.CustomerRepository;
+import org.example.eventmanagementapi.user.User;
+import org.example.eventmanagementapi.user.UserRepository;
 import org.example.eventmanagementapi.event.EventService;
 import org.example.eventmanagementapi.event.dto.EventRequestDTO;
 import org.example.eventmanagementapi.event.dto.EventSummaryResponseDTO;
@@ -54,7 +54,7 @@ class TicketE2EIntegrationTest {
     private AuthService authService;
 
     @Autowired
-    private CustomerRepository customerRepository;
+    private UserRepository customerRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -85,7 +85,7 @@ class TicketE2EIntegrationTest {
                 )
         );
 
-        Customer customer = customerRepository.findByEmailAndDeletedFalse("petar.e2e@example.com")
+        User customer = customerRepository.findByEmailAndDeletedFalse("petar.e2e@example.com")
                 .orElseThrow();
 
         TicketRequestDTO ticketRequest = new TicketRequestDTO(customer.getId(), event.id(), "A-1");

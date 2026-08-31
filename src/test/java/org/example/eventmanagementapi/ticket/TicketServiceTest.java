@@ -1,12 +1,12 @@
 package org.example.eventmanagementapi.ticket;
 
-import org.example.eventmanagementapi.customer.CustomerService;
-import org.example.eventmanagementapi.customer.Role;
+import org.example.eventmanagementapi.user.UserService;
+import org.example.eventmanagementapi.user.Role;
 import org.example.eventmanagementapi.event.EventDeletedEvent;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.event.EventService;
 import org.example.eventmanagementapi.building.Building;
-import org.example.eventmanagementapi.customer.Customer;
+import org.example.eventmanagementapi.user.User;
 import org.example.eventmanagementapi.event.Event;
 import org.example.eventmanagementapi.ticket.dto.TicketRequestDTO;
 import org.example.eventmanagementapi.ticket.dto.TicketResponseDTO;
@@ -47,7 +47,7 @@ class TicketServiceTest {
     private TicketRepository ticketRepository;
 
     @Mock
-    private CustomerService customerService;
+    private UserService customerService;
 
     @Mock
     private EventService eventService;
@@ -64,7 +64,7 @@ class TicketServiceTest {
     private UUID ticketId;
     private String seatNumber;
     private TicketRequestDTO ticketRequestDTO;
-    private Customer customer;
+    private User customer;
     private Event event;
 
     @BeforeEach
@@ -77,7 +77,7 @@ class TicketServiceTest {
 
         ticketRequestDTO = new TicketRequestDTO(customerId, eventId, seatNumber);
 
-        customer = new Customer(
+        customer = new User(
                 "John",
                 "Doe",
                 "john@gmail.com",

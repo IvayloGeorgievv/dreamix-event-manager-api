@@ -7,14 +7,12 @@ import org.example.eventmanagementapi.auth.dto.RefreshTokenDTO;
 import org.example.eventmanagementapi.auth.dto.RegisterRequestDTO;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.common.security.jwt.JwtService;
-import org.example.eventmanagementapi.customer.Customer;
-import org.example.eventmanagementapi.customer.CustomerRepository;
-import org.example.eventmanagementapi.customer.Role;
-import org.springframework.beans.factory.annotation.Value;
+import org.example.eventmanagementapi.user.User;
+import org.example.eventmanagementapi.user.UserRepository;
+import org.example.eventmanagementapi.user.Role;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,7 +25,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final CustomerRepository customerRepository;
+    private final UserRepository customerRepository;
     private final RefreshTokenRedisService refreshTokenRedisService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -41,7 +39,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessLogicException("Customer with this email already exists!");
         }
 
-        Customer customer = authMapper.toCustomer(request);
+        User customer = authMapper.toCustomer(request);
         customer.setPassword(Objects.requireNonNull(passwordEncoder.encode(request.password())));
         customer.setRole(Role.ROLE_CUSTOMER);
         customerRepository.save(customer);
@@ -66,7 +64,7 @@ public class AuthServiceImpl implements AuthService {
                 )
         );
 
-        Customer customer = customerRepository.findByEmailAndDeletedFalse(request.email())
+        User customer = customerRepository.findByEmailAndDeletedFalse(request.email())
                 .orElseThrow(() -> new BusinessLogicException("Invalid email or password"));
 
         int tokenVersion = refreshTokenRedisService.getOrInitializeUserTokenVersion(customer.getEmail());
@@ -107,7 +105,7 @@ public class AuthServiceImpl implements AuthService {
                 .map(SimpleGrantedAuthority::new)
                 .toList();
 
-        UserDetails principal = User.builder()
+        UserDetails principal = org.springframework.security.core.userdetails.User.builder()
                 .username(email)
                 .password("")
                 .authorities(authorities)
