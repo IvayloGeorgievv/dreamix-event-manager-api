@@ -7,8 +7,8 @@ import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
 public record TicketRequestDTO(
-        @NotNull(message = "Customer ID is required")
-        UUID customerId,
+        @NotNull(message = "User ID is required")
+        UUID userId,
 
         @NotNull(message = "Event ID is required")
         UUID eventId,

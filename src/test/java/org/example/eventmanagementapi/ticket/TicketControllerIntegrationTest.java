@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // Boots the complete Spring Application Context for end-to-end
 @SpringBootTest
 // Autoconfigures MockMvc to simulate HTTP requests without starting a web server
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 class TicketControllerIntegrationTest {
     // Autowired is needed to inject the Spring Beans directly from application context into the test
     // Executes and tests mock HTTP requests against controllers without starting a real network server.
@@ -43,15 +43,15 @@ class TicketControllerIntegrationTest {
     @DisplayName("POST /api/tickets - Successfully buy ticket Integration Flow")
     void buyTicket_ShouldReturnCreated_WhenValidPayload() throws Exception {
         //Arrange
-        UUID customerId = UUID.randomUUID();
-        UUID eventId = UUID.randomUUID();
-        UUID ticketId = UUID.randomUUID();
-        String seatNumber = "A-10";
+        final UUID userId = UUID.randomUUID();
+        final UUID eventId = UUID.randomUUID();
+        final UUID ticketId = UUID.randomUUID();
+        final String seatNumber = "A-10";
 
-        TicketRequestDTO requestDTO = new TicketRequestDTO(customerId, eventId, seatNumber);
-        TicketResponseDTO responseDTO = new TicketResponseDTO(
+        final TicketRequestDTO requestDTO = new TicketRequestDTO(userId, eventId, seatNumber);
+        final TicketResponseDTO responseDTO = new TicketResponseDTO(
                 ticketId,
-                customerId,
+                userId,
                 "John Doe",
                 eventId,
                 "Rock Fest",
@@ -68,7 +68,7 @@ class TicketControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(ticketId.toString()))
                 .andExpect(jsonPath("$.seatNumber").value(seatNumber))
-                .andExpect(jsonPath("$.customerName").value("John Doe"))
+                .andExpect(jsonPath("$.userName").value("John Doe"))
                 .andExpect(jsonPath("$.pricePaid").value(60.0));
     }
 
@@ -76,11 +76,11 @@ class TicketControllerIntegrationTest {
     @DisplayName("POST /api/tickets - Should return 409 Conflict when venue capacity is exhausted")
     void buyTicket_ShouldReturnConflict_WhenCapacityExhausted() throws Exception {
         // Arrange
-        UUID customerId = UUID.randomUUID();
-        UUID eventId = UUID.randomUUID();
-        String seatNumber = "A-15";
+        final UUID userId = UUID.randomUUID();
+        final UUID eventId = UUID.randomUUID();
+        final String seatNumber = "A-15";
 
-        TicketRequestDTO ticketRequestDTO = new TicketRequestDTO(customerId, eventId, seatNumber);
+        final TicketRequestDTO ticketRequestDTO = new TicketRequestDTO(userId, eventId, seatNumber);
 
         when(ticketService.buyTicket(any(TicketRequestDTO.class)))
                 .thenThrow(new BusinessLogicException("No more capacity available for this venue!"));

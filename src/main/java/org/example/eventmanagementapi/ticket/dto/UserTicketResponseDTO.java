@@ -3,7 +3,7 @@ package org.example.eventmanagementapi.ticket.dto;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public record CustomerTicketResponseDTO(
+public record UserTicketResponseDTO(
         UUID ticketId,
         UUID eventId,
         String eventTitle,

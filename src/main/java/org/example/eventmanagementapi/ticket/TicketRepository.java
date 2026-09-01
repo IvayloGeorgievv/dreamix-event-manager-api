@@ -14,7 +14,7 @@ interface TicketRepository extends JpaRepository<Ticket, UUID> {
 
     Optional<Ticket> findByIdAndDeletedFalse(UUID id);
 
-    List<Ticket> findByCustomerIdAndDeletedFalse(UUID customerId);
+    List<Ticket> findByUserIdAndDeletedFalse(UUID userId);
 
     List<Ticket> findByEventIdAndDeletedFalse(UUID eventId);
 

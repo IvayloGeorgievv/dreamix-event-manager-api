@@ -4,7 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.example.eventmanagementapi.auth.RefreshTokenRedisService;
+import org.example.eventmanagementapi.auth.RefreshTokenService;
 import org.example.eventmanagementapi.common.security.jwt.JwtService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +30,7 @@ class JwtAuthenticationFilterTest {
     private JwtService jwtService;
 
     @Mock
-    private RefreshTokenRedisService refreshTokenRedisService;
+    private RefreshTokenService refreshTokenRedisService;
 
     @Mock
     private HttpServletRequest request;
@@ -57,15 +57,15 @@ class JwtAuthenticationFilterTest {
     @Test
     @DisplayName("Should authenticate request when JWT and token version in Redis are valid")
     void shouldAuthenticateWhenTokenAndVersionAreValid() throws ServletException, IOException {
-        String token = "valid.jwt.token";
-        String email = "john@example.com";
+        final String token = "valid.jwt.token";
+        final String email = "john@example.com";
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
         when(jwtService.isTokenValid(token)).thenReturn(true);
         when(jwtService.extractUsername(token)).thenReturn(email);
         when(jwtService.extractTokenVersion(token)).thenReturn(1);
         when(refreshTokenRedisService.isTokenVersionValid(email, 1)).thenReturn(true);
-        when(jwtService.extractRoles(token)).thenReturn(List.of("ROLE_CUSTOMER"));
+        when(jwtService.extractRoles(token)).thenReturn(List.of("ROLE_USER"));
 
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
@@ -77,8 +77,8 @@ class JwtAuthenticationFilterTest {
     @Test
     @DisplayName("Should clear context and reject authentication when token version is revoked/outdated")
     void shouldNotAuthenticateWhenTokenVersionIsOutdated() throws ServletException, IOException {
-        String token = "outdated.jwt.token";
-        String email = "john@example.com";
+        final String token = "outdated.jwt.token";
+        final String email = "john@example.com";
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
         when(jwtService.isTokenValid(token)).thenReturn(true);

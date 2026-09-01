@@ -19,21 +19,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
-@AutoConfigureMockMvc
-class CustomerControllerIntegrationTest {
+@AutoConfigureMockMvc(addFilters = false)
+class UserControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
-    private UserService customerService;
+    private UserService userService;
 
     @Test
-    @DisplayName("GET /api/customers/{id} - Successfully retrieve customer by ID")
-    void getCustomerById_ShouldReturnCustomer_WhenFound() throws Exception {
-        UUID customerId = UUID.randomUUID();
-        UserResponseDTO responseDTO = new UserResponseDTO(
-                customerId,
+    @DisplayName("GET /api/users/{id} - Successfully retrieve user by ID")
+    void getUserById_ShouldReturnUser_WhenFound() throws Exception {
+        final UUID userId = UUID.randomUUID();
+        final UserResponseDTO responseDTO = new UserResponseDTO(
+                userId,
                 "Alice",
                 "Smith",
                 "alice@example.com",
@@ -42,29 +42,29 @@ class CustomerControllerIntegrationTest {
                 "9000"
         );
 
-        when(customerService.getCustomerById(customerId)).thenReturn(responseDTO);
+        when(userService.getUserById(userId)).thenReturn(responseDTO);
 
-        mockMvc.perform(get("/api/customers/{id}", customerId)
+        mockMvc.perform(get("/api/users/{id}", userId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(customerId.toString()))
+                .andExpect(jsonPath("$.id").value(userId.toString()))
                 .andExpect(jsonPath("$.firstName").value("Alice"))
                 .andExpect(jsonPath("$.email").value("alice@example.com"));
 
     }
 
     @Test
-    @DisplayName("GET /api/customers/{id} - Should return 404 when customer not found")
-    void getCustomerById_ShouldReturnNotFound_WhenCustomerDoesNotExist() throws Exception {
-        UUID nonExistentId = UUID.randomUUID();
+    @DisplayName("GET /api/users/{id} - Should return 404 when user not found")
+    void getUserById_ShouldReturnNotFound_WhenUserDoesNotExist() throws Exception {
+        final UUID nonExistentId = UUID.randomUUID();
 
-        when(customerService.getCustomerById(nonExistentId))
-                .thenThrow(new ResourceNotFoundException("Customer not found with ID: " + nonExistentId));
+        when(userService.getUserById(nonExistentId))
+                .thenThrow(new ResourceNotFoundException("User not found with ID: " + nonExistentId));
 
-        mockMvc.perform(get("/api/customers/{id}", nonExistentId)
+        mockMvc.perform(get("/api/users/{id}", nonExistentId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.message").value("Customer not found"));
+                .andExpect(jsonPath("$.message").value("User not found"));
     }
 }

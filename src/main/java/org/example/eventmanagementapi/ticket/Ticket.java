@@ -25,8 +25,8 @@ import java.math.BigDecimal;
 public class Ticket extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
-    private User customer;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", nullable = false)
@@ -38,8 +38,8 @@ public class Ticket extends BaseEntity {
     @Column(name = "price_paid", nullable = false, updatable = false, precision = 10, scale = 2)
     private BigDecimal pricePaid;
 
-    public Ticket(User customer, Event event, String seatNumber) {
-        this.customer = customer;
+    public Ticket(User user, Event event, String seatNumber) {
+        this.user = user;
         this.event = event;
         this.seatNumber = seatNumber;
         this.pricePaid = event.getBasePrice();

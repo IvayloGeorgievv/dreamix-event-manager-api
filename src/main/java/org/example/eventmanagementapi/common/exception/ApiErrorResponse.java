@@ -17,7 +17,7 @@ public record ApiErrorResponse(
         Map<String, String> validationErrors
 ) {
     // Standard error factory
-    public static ApiErrorResponse of(int status, String error, String message, String path) {
+    public static ApiErrorResponse of(final int status, final String error, final String message, final  String path) {
         return new ApiErrorResponse(
                 status,
                 error,
@@ -30,7 +30,7 @@ public record ApiErrorResponse(
     }
 
     // Validation error factory
-    public static ApiErrorResponse ofValidation(int status, String error, String message, String path, Map<String, String> validationErrors) {
+    public static ApiErrorResponse ofValidation(final int status, final String error, final String message, final String path, final Map<String, String> validationErrors) {
         return new ApiErrorResponse(
                 status,
                 error,

@@ -15,10 +15,10 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "customer")
+@Table(name = "\"user\"")
 @SecondaryTable(
-        name = "customer_profiles",
-        pkJoinColumns = @PrimaryKeyJoinColumn(name = "customer_id")
+        name = "user_profiles",
+        pkJoinColumns = @PrimaryKeyJoinColumn(name = "user_id")
 )
 @NoArgsConstructor
 @Getter
@@ -43,19 +43,15 @@ public class User extends BaseEntity implements UserDetails {
     private String password;
 
     @Nullable
-    @Column(name = "refresh_token", length = 512)
-    private String refreshToken;
-
-    @Nullable
-    @Column(table = "customer_profiles", name = "phone_number", length = 30)
+    @Column(table = "user_profiles", name = "phone_number", length = 30)
     private String phoneNumber;
 
     @Nullable
-    @Column(table = "customer_profiles", name = "address", length = 200)
+    @Column(table = "user_profiles", name = "address", length = 200)
     private String address;
 
     @Nullable
-    @Column(table = "customer_profiles", name = "postal_code", length = 20)
+    @Column(table = "user_profiles", name = "postal_code", length = 20)
     private String postalCode;
 
     public User(String firstName, String lastName, String email, String password, Role role) {
@@ -72,13 +68,13 @@ public class User extends BaseEntity implements UserDetails {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
-    // Returns the Customer's email to be used as the unique username for Spring Security authentication
+    // Returns the User's email to be used as the unique username for Spring Security authentication
     @Override
     public String getUsername(){
         return this.email;
     }
 
-    // Determines if Customer is active based on soft-delete status
+    // Determines if User is active based on soft-delete status
     @Override
     public boolean isEnabled() {
         return !isDeleted();

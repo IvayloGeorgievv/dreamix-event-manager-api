@@ -8,17 +8,17 @@ import java.util.UUID;
 
 public interface UserService {
 
-    UserResponseDTO getCustomerById(UUID customerId);
+    UserResponseDTO getUserById(UUID userId);
 
-    User getCustomerEntityById(UUID customerId);
+    User getUserEntityById(UUID userId);
 
-    List<UserResponseDTO> getAllCustomers(boolean includeDeleted);
+    List<UserResponseDTO> getAllUsers(boolean includeDeleted);
 
-    UserResponseDTO updateCustomer(UUID customerId, UserRequestDTO request);
+    UserResponseDTO updateUser(UUID userId, UserRequestDTO request);
 
-    void softDeleteCustomer(UUID customerId);
+    void softDeleteUser(UUID userId);
 
-    void hardDeleteCustomer(UUID customerId);
+    void hardDeleteUser(UUID userId);
 
-    UserResponseDTO restoreCustomer(UUID customerId);
+    UserResponseDTO restoreUser(UUID userId);
 }

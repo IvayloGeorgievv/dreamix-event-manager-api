@@ -31,10 +31,10 @@ import static org.mockito.Mockito.*;
 class AuthServiceTest {
 
     @Mock
-    private UserRepository customerRepository;
+    private UserRepository userRepository;
 
     @Mock
-    private RefreshTokenRedisService refreshTokenRedisService;
+    private RefreshTokenService refreshTokenRedisService;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -51,47 +51,47 @@ class AuthServiceTest {
     @InjectMocks
     private AuthServiceImpl authService;
 
-    private User customer;
+    private User user;
 
     @BeforeEach
     void setUp() {
-        customer = new User();
-        customer.setEmail("john@example.com");
-        customer.setPassword("encodedPassword");
-        customer.setRole(Role.ROLE_CUSTOMER);
+        user = new User();
+        user.setEmail("john@example.com");
+        user.setPassword("encodedPassword");
+        user.setRole(Role.ROLE_USER);
     }
 
     @Test
-    @DisplayName("Should successfully register customer and issue tokens")
-    void shouldRegisterCustomer() {
-        RegisterRequestDTO request = new RegisterRequestDTO("John", "Doe", "john@example.com", "Password123!");
+    @DisplayName("Should successfully register user and issue tokens")
+    void shouldRegisterUser() {
+        final RegisterRequestDTO request = new RegisterRequestDTO("John", "Doe", "john@example.com", "Password123!");
 
-        when(customerRepository.existsByEmailAndDeletedFalse(request.email())).thenReturn(false);
-        when(authMapper.toCustomer(request)).thenReturn(customer);
+        when(userRepository.existsByEmailAndDeletedFalse(request.email())).thenReturn(false);
+        when(authMapper.toUser(request)).thenReturn(user);
         when(passwordEncoder.encode(request.password())).thenReturn("encodedPassword");
         when(refreshTokenRedisService.getOrInitializeUserTokenVersion(request.email())).thenReturn(1);
-        when(jwtService.generateToken(customer, 1)).thenReturn("jwt-access-token");
-        when(jwtService.generateRefreshToken(customer, 1)).thenReturn("jwt-refresh-token");
+        when(jwtService.generateToken(user, 1)).thenReturn("jwt-access-token");
+        when(jwtService.generateRefreshToken(user, 1)).thenReturn("jwt-refresh-token");
 
-        AuthResponseDTO response = authService.register(request);
+        final AuthResponseDTO response = authService.register(request);
 
         assertThat(response.accessToken()).isEqualTo("jwt-access-token");
         assertThat(response.refreshToken()).isEqualTo("jwt-refresh-token");
-        verify(customerRepository).save(customer);
+        verify(userRepository).save(user);
         verify(refreshTokenRedisService).storeRefreshToken(request.email(), "jwt-refresh-token");
     }
 
     @Test
     @DisplayName("Should login user and store new refresh token session")
     void shouldLoginUser() {
-        LoginRequestDTO request = new LoginRequestDTO("john@example.com", "Password123!");
+        final LoginRequestDTO request = new LoginRequestDTO("john@example.com", "Password123!");
 
-        when(customerRepository.findByEmailAndDeletedFalse(request.email())).thenReturn(Optional.of(customer));
+        when(userRepository.findByEmailAndDeletedFalse(request.email())).thenReturn(Optional.of(user));
         when(refreshTokenRedisService.getOrInitializeUserTokenVersion(request.email())).thenReturn(1);
-        when(jwtService.generateToken(customer, 1)).thenReturn("jwt-access-token");
-        when(jwtService.generateRefreshToken(customer, 1)).thenReturn("jwt-refresh-token");
+        when(jwtService.generateToken(user, 1)).thenReturn("jwt-access-token");
+        when(jwtService.generateRefreshToken(user, 1)).thenReturn("jwt-refresh-token");
 
-        AuthResponseDTO response = authService.login(request);
+        final AuthResponseDTO response = authService.login(request);
 
         assertThat(response.accessToken()).isEqualTo("jwt-access-token");
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
@@ -101,8 +101,8 @@ class AuthServiceTest {
     @Test
     @DisplayName("Should throw BusinessLogicException when refresh token version does not match active Redis version")
     void shouldRejectRefreshTokenOnVersionMismatch() {
-        RefreshTokenDTO request = new RefreshTokenDTO("stale-refresh-token");
-        String email = "john@example.com";
+        final RefreshTokenDTO request = new RefreshTokenDTO("stale-refresh-token");
+        final String email = "john@example.com";
 
         when(jwtService.isTokenValid(request.refreshToken())).thenReturn(true);
         when(jwtService.extractUsername(request.refreshToken())).thenReturn(email);

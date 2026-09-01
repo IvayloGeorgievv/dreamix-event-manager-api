@@ -7,7 +7,7 @@ import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.common.exception.ResourceNotFoundException;
 import org.example.eventmanagementapi.event.EventService;
 import org.example.eventmanagementapi.event.Event;
-import org.example.eventmanagementapi.ticket.dto.CustomerTicketResponseDTO;
+import org.example.eventmanagementapi.ticket.dto.UserTicketResponseDTO;
 import org.example.eventmanagementapi.ticket.dto.TicketRequestDTO;
 import org.example.eventmanagementapi.ticket.dto.TicketResponseDTO;
 import org.springframework.transaction.annotation.Propagation;
@@ -29,47 +29,47 @@ public class TicketServiceImpl implements TicketService {
 
     private final TicketRepository ticketRepository;
 
-    private final UserService customerService;
+    private final UserService userService;
     private final EventService eventService;
 
     private final TicketMapper ticketMapper;
 
     @Override
     @Transactional
-    public TicketResponseDTO buyTicket(TicketRequestDTO request) {
-        User customer = customerService.getCustomerEntityById(request.customerId());
-        Event event = eventService.getEventEntityById(request.eventId());
+    public TicketResponseDTO buyTicket(final TicketRequestDTO request) {
+        final User user = userService.getUserEntityById(request.userId());
+        final Event event = eventService.getEventEntityById(request.eventId());
 
         validateTicketPurchase(event, request.seatNumber());
 
         event.incrementSoldTickets();
 
-        Ticket ticket = ticketMapper.toEntity(request);
-        ticket.setCustomer(customer);
+        final Ticket ticket = ticketMapper.toEntity(request);
+        ticket.setUser(user);
         ticket.setEvent(event);
         ticket.setPricePaid(event.getBasePrice());
-        Ticket savedTicket = ticketRepository.save(ticket);
+        final Ticket savedTicket = ticketRepository.save(ticket);
 
         return ticketMapper.toResponseDTO(savedTicket);
     }
 
     @Override
-    public TicketResponseDTO getTicketById(UUID ticketId) {
+    public TicketResponseDTO getTicketById(final UUID ticketId) {
         return ticketMapper.toResponseDTO(getTicketEntityById(ticketId));
     }
 
     @Override
-    public List<CustomerTicketResponseDTO> getTicketsByCustomer(UUID customerId) {
-        return ticketRepository.findByCustomerIdAndDeletedFalse(customerId).stream()
-                .map(ticketMapper::toCustomerTicketDTO)
+    public List<UserTicketResponseDTO> getTicketsByUser(final UUID userId) {
+        return ticketRepository.findByUserIdAndDeletedFalse(userId).stream()
+                .map(ticketMapper::toUserTicketDTO)
                 .toList();
     }
 
     @Override
     @Transactional
-    public void cancelTicket(UUID ticketId) {
-        Ticket ticket = getTicketEntityById(ticketId);
-        Event event = ticket.getEvent();
+    public void cancelTicket(final UUID ticketId) {
+        final Ticket ticket = getTicketEntityById(ticketId);
+        final Event event = ticket.getEvent();
 
         if (event.getSoldTicketsCount() <= 0) {
             throw new BusinessLogicException("Cannot decrement sold tickets below zero");
@@ -86,31 +86,31 @@ public class TicketServiceImpl implements TicketService {
     @Override
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void handleEventDeleted(EventDeletedEvent event) {
-        List<Ticket> tickets = ticketRepository.findByEventIdAndDeletedFalse(event.eventId());
+    public void handleEventDeleted(final EventDeletedEvent event) {
+        final List<Ticket> tickets = ticketRepository.findByEventIdAndDeletedFalse(event.eventId());
         tickets.forEach(ticket -> ticket.setDeleted(true));
 
     }
 
     @Override
     @Transactional
-    public void hardDeleteTicket(UUID ticketId) {
-        Ticket ticket = ticketRepository.findById(ticketId)
+    public void hardDeleteTicket(final UUID ticketId) {
+        final Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with ID: " + ticketId));
         ticketRepository.delete(ticket);
     }
 
     @Override
     @Transactional
-    public TicketResponseDTO restoreTicket(UUID ticketId) {
-        Ticket ticket = ticketRepository.findById(ticketId)
+    public TicketResponseDTO restoreTicket(final UUID ticketId) {
+        final Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with ID: " + ticketId));
 
         if (!ticket.isDeleted()) {
             throw new BusinessLogicException("Ticket is not deleted, nothing to restore!");
         }
 
-        Event event = ticket.getEvent();
+        final Event event = ticket.getEvent();
 
         if (ticketRepository.existsByEventIdAndSeatNumberAndDeletedFalse(event.getId(), ticket.getSeatNumber())) {
             throw new BusinessLogicException("Seat has since been rebooked; cannot restore this ticket!");
@@ -124,13 +124,13 @@ public class TicketServiceImpl implements TicketService {
         return ticketMapper.toResponseDTO(ticket);
     }
 
-    private Ticket getTicketEntityById(UUID ticketId) {
+    private Ticket getTicketEntityById(final UUID ticketId) {
         return ticketRepository.findByIdAndDeletedFalse(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException("Active ticket not found with ID: " + ticketId));
     }
 
     //private validation helper
-    private void validateTicketPurchase(Event event, String seatNumber) {
+    private void validateTicketPurchase(final Event event, final String seatNumber) {
         if (!event.getDateAndTime().isAfter(LocalDateTime.now(ZoneOffset.UTC))) {
             throw new BusinessLogicException("Cannot buy a ticket for a past event!");
         }

@@ -34,6 +34,8 @@ class RefreshTokenServiceRedisTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(refreshTokenService, "refreshExpiration", 604800000L);
+        ReflectionTestUtils.setField(refreshTokenService, "redisPrefix", "refresh_token:");
+        ReflectionTestUtils.setField(refreshTokenService, "versionPrefix", "user_token_version:");
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
     }
 
@@ -43,9 +45,9 @@ class RefreshTokenServiceRedisTest {
         refreshTokenService.storeRefreshToken(EMAIL, TOKEN);
 
         verify(valueOperations).set(
-                eq("refresh_token:" + EMAIL),
-                eq(TOKEN),
-                eq(Duration.ofMillis(604800000L))
+                "refresh_token:" + EMAIL,
+                TOKEN,
+                Duration.ofMillis(604800000L)
         );
     }
 
@@ -54,7 +56,7 @@ class RefreshTokenServiceRedisTest {
     void shouldValidateStoredRefreshToken() {
         when(valueOperations.get("refresh_token:" + EMAIL)).thenReturn(TOKEN);
 
-        boolean isValid = refreshTokenService.isRefreshTokenValid(EMAIL, TOKEN);
+        final boolean isValid = refreshTokenService.isRefreshTokenValid(EMAIL, TOKEN);
 
         assertThat(isValid).isTrue();
     }

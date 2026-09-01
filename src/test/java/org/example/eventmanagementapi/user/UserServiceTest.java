@@ -20,25 +20,23 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CustomerServiceTest {
+class UserServiceTest {
 
     @Mock
-    private UserRepository customerRepository;
+    private UserRepository userRepository;
 
     @Spy
-    private UserMapper customerMapper = Mappers.getMapper(UserMapper.class);
+    private UserMapper userMapper = Mappers.getMapper(UserMapper.class);
 
     @InjectMocks
-    private UserServiceImpl customerService;
+    private UserServiceImpl userService;
 
-    private UUID customerId;
-    private UserRequestDTO customerRequestDTO;
-    private User customer;
+    private UUID userId;
 
     @BeforeEach
     void setUp() {
-        customerId = UUID.randomUUID();
-        customerRequestDTO = new UserRequestDTO(
+        userId = UUID.randomUUID();
+        final UserRequestDTO userRequestDTO = new UserRequestDTO(
                 "John",
                 "Doe",
                 "john@gmail.com",
@@ -47,26 +45,26 @@ class CustomerServiceTest {
                 "1000"
         );
 
-        customer = new User(
-                customerRequestDTO.firstName(),
-                customerRequestDTO.lastName(),
-                customerRequestDTO.email(),
+        final User user = new User(
+                userRequestDTO.firstName(),
+                userRequestDTO.lastName(),
+                userRequestDTO.email(),
                 "encodedPassword123!",
-                Role.ROLE_CUSTOMER
+                Role.ROLE_USER
         );
-        ReflectionTestUtils.setField(customer, "id", customerId);
+        ReflectionTestUtils.setField(user, "id", userId);
     }
 
     @Test
-    @DisplayName("Throw ResourceNotFoundException when Customer entity is not found by ID")
-    void getCustomerEntityById_ShouldThrowException_WhenNotFound() {
-        when(customerRepository.findByIdAndDeletedFalse(customerId)).thenReturn(Optional.empty());
+    @DisplayName("Throw ResourceNotFoundException when User entity is not found by ID")
+    void getUserEntityById_ShouldThrowException_WhenNotFound() {
+        when(userRepository.findByIdAndDeletedFalse(userId)).thenReturn(Optional.empty());
 
-        ResourceNotFoundException exception = assertThrows(
+        final ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> customerService.getCustomerEntityById(customerId)
+                () -> userService.getUserEntityById(userId)
         );
 
-        assertEquals("Customer not found with ID: " + customerId, exception.getMessage());
+        assertEquals("User not found with ID: " + userId, exception.getMessage());
     }
 }

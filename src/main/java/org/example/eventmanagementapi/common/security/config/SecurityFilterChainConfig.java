@@ -25,7 +25,7 @@ public class SecurityFilterChainConfig {
     // Configures HTTP security rules, disables CSRF/sessions for statelessness, and injects the JWT filter
     @Bean
     @SuppressWarnings("java:S4502") // Disabling SonarQube Warning for disabling CSRF
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+    public SecurityFilterChain securityFilterChain(final HttpSecurity http) {
         http
                 // When we would need CSRF?
                 .csrf(AbstractHttpConfigurer::disable)

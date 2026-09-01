@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class JwtServiceTest {
 
     static {
-        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+        final Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
         dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
     }
 
@@ -56,20 +56,20 @@ class JwtServiceTest {
         userDetails = User.builder()
                 .username("john.doe@example.com")
                 .password("encoded_pass")
-                .authorities(List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER")))
+                .authorities(List.of(new SimpleGrantedAuthority("ROLE_USER")))
                 .build();
     }
 
     @Test
     @DisplayName("Should generate valid token and correctly extract subject, roles, and version using test properties")
     void shouldGenerateAndExtractClaimsCorrectly() {
-        int tokenVersion = 1;
-        String token = jwtService.generateToken(userDetails, tokenVersion);
+        final int tokenVersion = 1;
+        final String token = jwtService.generateToken(userDetails, tokenVersion);
 
         assertThat(token).isNotBlank();
         assertThat(jwtService.isTokenValid(token)).isTrue();
         assertThat(jwtService.extractUsername(token)).isEqualTo("john.doe@example.com");
-        assertThat(jwtService.extractRoles(token)).containsExactly("ROLE_CUSTOMER");
+        assertThat(jwtService.extractRoles(token)).containsExactly("ROLE_USER");
         assertThat(jwtService.extractTokenVersion(token)).isEqualTo(1);
     }
 
@@ -78,7 +78,7 @@ class JwtServiceTest {
     void shouldDetectExpiredToken() {
         ReflectionTestUtils.setField(jwtService, "jwtExpiration", -1000L);
 
-        String expiredToken = jwtService.generateToken(userDetails, 1);
+        final String expiredToken = jwtService.generateToken(userDetails, 1);
 
         assertThat(jwtService.isTokenExpired(expiredToken)).isTrue();
         assertThat(jwtService.isTokenValid(expiredToken)).isFalse();

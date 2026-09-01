@@ -12,45 +12,43 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/customers")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService customerService;
+    private final UserService userService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> getCustomerById(@PathVariable UUID id) {
-        return ResponseEntity.ok(customerService.getCustomerById(id));
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @GetMapping
-    public ResponseEntity<List<UserResponseDTO>> getAllCustomers(
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers(
             @RequestParam(name = "includeDeleted", defaultValue = "false") boolean includeDeleted) {
-        return ResponseEntity.ok(customerService.getAllCustomers(includeDeleted));
+        return ResponseEntity.ok(userService.getAllUsers(includeDeleted));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> updateCustomer(@PathVariable UUID id, @Valid @RequestBody UserRequestDTO request) {
-        return ResponseEntity.ok(customerService.updateCustomer(id, request));
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id, @Valid @RequestBody UserRequestDTO request) {
+        return ResponseEntity.ok(userService.updateUser(id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable UUID id) {
-
-        customerService.softDeleteCustomer(id);
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+        userService.softDeleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}/hard")
-    public ResponseEntity<Void> hardDeleteCustomer(@PathVariable UUID id) {
-
-        customerService.hardDeleteCustomer(id);
+    public ResponseEntity<Void> hardDeleteUser(@PathVariable UUID id) {
+        userService.hardDeleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/restore")
-    public ResponseEntity<UserResponseDTO> restoreCustomer(@PathVariable UUID id) {
-        return ResponseEntity.ok(customerService.restoreCustomer(id));
+    public ResponseEntity<UserResponseDTO> restoreUser(@PathVariable UUID id) {
+        return ResponseEntity.ok(userService.restoreUser(id));
     }
 }

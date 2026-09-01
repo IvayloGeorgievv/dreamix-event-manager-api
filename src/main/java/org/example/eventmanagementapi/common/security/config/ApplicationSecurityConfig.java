@@ -17,29 +17,29 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RequiredArgsConstructor
 public class ApplicationSecurityConfig {
 
-    private final UserRepository customerRepository;
+    private final UserRepository userRepository;
 
     // Defines how Spring Security fetches the user entity and authorities from the database by email
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> customerRepository.findByEmailAndDeletedFalse(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Customer not found with email: " + username));
+        return username -> userRepository.findByEmailAndDeletedFalse(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
     }
 
     // Configures the authentication strategy by linking the user lookup service with the password hashing tool
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService());
+        final DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService());
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
 
     // Exposes Spring's central AuthenticationManager bean to process authentication attempts during login
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) {
+    public AuthenticationManager authenticationManager(final AuthenticationConfiguration configuration) {
         try {
             return configuration.getAuthenticationManager();
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             throw new IllegalStateException("Failed to configure AuthenticationManager", ex);
         }
     }

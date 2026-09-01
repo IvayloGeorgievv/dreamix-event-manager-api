@@ -5,8 +5,8 @@ import java.util.UUID;
 
 public record TicketResponseDTO(
         UUID id,
-        UUID customerId,
-        String customerName,
+        UUID userId,
+        String userName,
         UUID eventId,
         String eventTitle,
         String seatNumber,

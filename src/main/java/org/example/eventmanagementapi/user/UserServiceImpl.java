@@ -16,86 +16,86 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository customerRepository;
+    private final UserRepository userRepository;
 
-    private final UserMapper customerMapper;
+    private final UserMapper userMapper;
 
 
     @Override
-    public UserResponseDTO getCustomerById(UUID customerId) {
-        return customerMapper.toResponseDTO(getCustomerEntityById(customerId));
+    public UserResponseDTO getUserById(final UUID userId) {
+        return userMapper.toResponseDTO(getUserEntityById(userId));
     }
 
 
     @Override
-    public User getCustomerEntityById(UUID customerId) {
-        return customerRepository.findByIdAndDeletedFalse(customerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with ID: " + customerId));
+    public User getUserEntityById(final UUID userId) {
+        return userRepository.findByIdAndDeletedFalse(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
     }
 
 
     @Override
-    public List<UserResponseDTO> getAllCustomers(boolean includeDeleted) {
-        List<User> customers = includeDeleted
-                ? customerRepository.findAll()
-                : customerRepository.findAllByDeletedFalse();
+    public List<UserResponseDTO> getAllUsers(final boolean includeDeleted) {
+        final List<User> users = includeDeleted
+                ? userRepository.findAll()
+                : userRepository.findAllByDeletedFalse();
 
-        return customers.stream()
-                .map(customerMapper::toResponseDTO)
+        return users.stream()
+                .map(userMapper::toResponseDTO)
                 .toList();
     }
 
 
     @Override
     @Transactional
-    public UserResponseDTO updateCustomer(UUID customerId, UserRequestDTO request) {
-        User customer = getCustomerEntityById(customerId);
-        validateEmailUniquenessForUpdate(customer.getEmail(), request.email());
+    public UserResponseDTO updateUser(final UUID userId, final UserRequestDTO request) {
+        final User user = getUserEntityById(userId);
+        validateEmailUniquenessForUpdate(user.getEmail(), request.email());
 
-        customerMapper.updateCustomerFromDto(request, customer);
-        return customerMapper.toResponseDTO(customer);
+        userMapper.updateUserFromDto(request, user);
+        return userMapper.toResponseDTO(user);
     }
 
 
     @Override
     @Transactional
-    public void softDeleteCustomer(UUID customerId) {
-        User customer = getCustomerEntityById(customerId);
-        customer.setDeleted(true);
+    public void softDeleteUser(final UUID userId) {
+        final User user = getUserEntityById(userId);
+        user.setDeleted(true);
     }
 
 
     @Override
     @Transactional
-    public void hardDeleteCustomer(UUID customerId) {
-        validateCustomerExists(customerId);
-        customerRepository.deleteById(customerId);
+    public void hardDeleteUser(final UUID userId) {
+        validateUserExists(userId);
+        userRepository.deleteById(userId);
     }
 
 
     @Override
     @Transactional
-    public UserResponseDTO restoreCustomer(UUID customerId) {
-        User customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with ID: " + customerId));
+    public UserResponseDTO restoreUser(final UUID userId) {
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 
-        if (!customer.isDeleted()) {
-            throw new BusinessLogicException("Customer is not deleted, nothing to restore!");
+        if (!user.isDeleted()) {
+            throw new BusinessLogicException("User is not deleted, nothing to restore!");
         }
 
-        customer.setDeleted(false);
-        return customerMapper.toResponseDTO(customer);
+        user.setDeleted(false);
+        return userMapper.toResponseDTO(user);
     }
 
-    private void validateEmailUniquenessForUpdate(String currentEmail, String newEmail) {
-        if (!currentEmail.equalsIgnoreCase(newEmail) && customerRepository.existsByEmailAndDeletedFalse(newEmail)) {
-            throw new BusinessLogicException("Customer with this email already exists!");
+    private void validateEmailUniquenessForUpdate(final String currentEmail, final String newEmail) {
+        if (!currentEmail.equalsIgnoreCase(newEmail) && userRepository.existsByEmailAndDeletedFalse(newEmail)) {
+            throw new BusinessLogicException("User with this email already exists!");
         }
     }
 
-    private void validateCustomerExists(UUID customerId) {
-        if (!customerRepository.existsById(customerId)) {
-            throw new ResourceNotFoundException("Customer not found with ID: " + customerId);
+    private void validateUserExists(final UUID userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User not found with ID: " + userId);
         }
     }
 }

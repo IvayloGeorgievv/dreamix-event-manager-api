@@ -38,41 +38,41 @@ public class EventServiceImpl implements EventService{
 
     @Override
     @Transactional
-    public EventSummaryResponseDTO createEvent(EventRequestDTO request) {
-        Venue venue = venueService.getVenueEntityById(request.venueId());
-        Event event = eventMapper.toEntity(request);
+    public EventSummaryResponseDTO createEvent(final EventRequestDTO request) {
+        final Venue venue = venueService.getVenueEntityById(request.venueId());
+        final Event event = eventMapper.toEntity(request);
         event.setVenue(venue);
 
         if (request.performerIds() != null && !request.performerIds().isEmpty()) {
-            Set<UUID> uniquePerformerIds = new HashSet<>(request.performerIds());
-            for (UUID performerId : uniquePerformerIds) {
-                Performer performer = performerService.getPerformerEntityById(performerId);
+            final Set<UUID> uniquePerformerIds = new HashSet<>(request.performerIds());
+            for (final UUID performerId : uniquePerformerIds) {
+                final Performer performer = performerService.getPerformerEntityById(performerId);
                 event.addPerformer(performer);
             }
         }
 
-        Event savedEvent = eventRepository.save(event);
+        final Event savedEvent = eventRepository.save(event);
         return eventMapper.toSummaryResponseDTO(savedEvent);
     }
 
 
     @Override
-    public EventResponseDTO getEventById(UUID id) {
-        Event event = getEventEntityById(id);
+    public EventResponseDTO getEventById(final UUID id) {
+        final Event event = getEventEntityById(id);
         return eventMapper.toResponseDTO(event);
     }
 
 
     @Override
-    public Event getEventEntityById(UUID id) {
+    public Event getEventEntityById(final UUID id) {
         return eventRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Active event not found with ID: " + id));
     }
 
 
     @Override
-    public List<EventSummaryResponseDTO> getAllEvents(boolean includeDeleted) {
-        List<Event> events = includeDeleted
+    public List<EventSummaryResponseDTO> getAllEvents(final boolean includeDeleted) {
+        final List<Event> events = includeDeleted
                 ? eventRepository.findAll()
                 : eventRepository.findAllByDeletedFalse();
 
@@ -91,7 +91,7 @@ public class EventServiceImpl implements EventService{
 
 
     @Override
-    public List<EventSummaryResponseDTO> getEventsByCity(String city) {
+    public List<EventSummaryResponseDTO> getEventsByCity(final String city) {
         return eventRepository.findByCity(city).stream()
                 .map(eventMapper::toSummaryResponseDTO)
                 .toList();
@@ -106,8 +106,8 @@ public class EventServiceImpl implements EventService{
 
     @Override
     @Transactional
-    public EventResponseDTO updateEvent(UUID id, EventRequestDTO request) {
-        Event event = getEventEntityById(id);
+    public EventResponseDTO updateEvent(final UUID id, final EventRequestDTO request) {
+        final Event event = getEventEntityById(id);
 
         if (request.dateAndTime().isBefore(LocalDateTime.now(ZoneOffset.UTC))) {
             throw new BusinessLogicException("Cannot update event date to a past date");
@@ -122,9 +122,9 @@ public class EventServiceImpl implements EventService{
 
     @Override
     @Transactional
-    public void addPerformerToEvent(UUID eventId, UUID performerId) {
-        Event event = getEventEntityById(eventId);
-        Performer performer = performerService.getPerformerEntityById(performerId);
+    public void addPerformerToEvent(final UUID eventId, final UUID performerId) {
+        final Event event = getEventEntityById(eventId);
+        final Performer performer = performerService.getPerformerEntityById(performerId);
 
         if (event.getPerformers().contains(performer)) {
             throw new BusinessLogicException("Performer is already added to this event!");
@@ -135,9 +135,9 @@ public class EventServiceImpl implements EventService{
 
     @Override
     @Transactional
-    public void removePerformerFromEvent(UUID eventId, UUID performerId) {
-        Event event = getEventEntityById(eventId);
-        Performer performer = performerService.getPerformerEntityById(performerId);
+    public void removePerformerFromEvent(final UUID eventId, final UUID performerId) {
+        final Event event = getEventEntityById(eventId);
+        final Performer performer = performerService.getPerformerEntityById(performerId);
 
         if (!event.removePerformer(performer)) {
             throw new BusinessLogicException("Performer is not associated with this event!");
@@ -145,15 +145,15 @@ public class EventServiceImpl implements EventService{
     }
 
     @Override
-    public BigDecimal calculateTotalRevenueForEvent(UUID eventId) {
+    public BigDecimal calculateTotalRevenueForEvent(final UUID eventId) {
         getEventEntityById(eventId);
         return eventRepository.calculateTotalRevenueForEvent(eventId);
     }
 
     @Override
     @Transactional
-    public void softDeleteEvent(UUID eventId) {
-        Event event = getEventEntityById(eventId);
+    public void softDeleteEvent(final UUID eventId) {
+        final Event event = getEventEntityById(eventId);
         event.setDeleted(true);
 
         eventPublisher.publishEvent(new EventDeletedEvent(eventId));
@@ -161,7 +161,7 @@ public class EventServiceImpl implements EventService{
 
     @Override
     @Transactional
-    public void hardDeleteEvent(UUID eventId) {
+    public void hardDeleteEvent(final UUID eventId) {
         validateEventExists(eventId);
 
         eventRepository.deleteById(eventId);
@@ -169,8 +169,8 @@ public class EventServiceImpl implements EventService{
 
     @Override
     @Transactional
-    public EventResponseDTO restoreEvent(UUID eventId) {
-        Event event = eventRepository.findById(eventId)
+    public EventResponseDTO restoreEvent(final UUID eventId) {
+        final Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with ID: " + eventId));
 
         if (!event.isDeleted()) {
@@ -181,7 +181,7 @@ public class EventServiceImpl implements EventService{
         return eventMapper.toResponseDTO(event);
     }
 
-    private void validateEventExists(UUID eventId) {
+    private void validateEventExists(final UUID eventId) {
         if (!eventRepository.existsById(eventId)) {
             throw new ResourceNotFoundException("Event not found with ID: " + eventId);
         }

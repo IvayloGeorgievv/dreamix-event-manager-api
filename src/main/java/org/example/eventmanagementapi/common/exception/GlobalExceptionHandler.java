@@ -22,11 +22,11 @@ public class GlobalExceptionHandler {
     private static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiErrorResponse> handleResourceNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
+    public ResponseEntity<ApiErrorResponse> handleResourceNotFound(final ResourceNotFoundException ex, final HttpServletRequest request) {
 
-        String sanitizedMessage = sanitizeExceptionMessage(ex.getMessage());
+        final String sanitizedMessage = sanitizeExceptionMessage(ex.getMessage());
 
-        ApiErrorResponse response = ApiErrorResponse.of(
+        final ApiErrorResponse response = ApiErrorResponse.of(
                 HttpStatus.NOT_FOUND.value(),
                 HttpStatus.NOT_FOUND.getReasonPhrase(),
                 sanitizedMessage,
@@ -38,8 +38,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ApiErrorResponse> handleNoResourceFound(NoResourceFoundException ex, HttpServletRequest request) {
-        ApiErrorResponse response = ApiErrorResponse.of(
+    public ResponseEntity<ApiErrorResponse> handleNoResourceFound(final NoResourceFoundException ex, final HttpServletRequest request) {
+        final ApiErrorResponse response = ApiErrorResponse.of(
                 HttpStatus.NOT_FOUND.value(),
                 HttpStatus.NOT_FOUND.getReasonPhrase(),
                 "Resource or endpoint not found: " + request.getRequestURI(),
@@ -51,8 +51,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BusinessLogicException.class)
-    public ResponseEntity<ApiErrorResponse> handleBusinessLogicException(BusinessLogicException ex, HttpServletRequest request) {
-        ApiErrorResponse response = ApiErrorResponse.of(
+    public ResponseEntity<ApiErrorResponse> handleBusinessLogicException(final BusinessLogicException ex, final HttpServletRequest request) {
+        final ApiErrorResponse response = ApiErrorResponse.of(
                 HttpStatus.CONFLICT.value(),
                 HttpStatus.CONFLICT.getReasonPhrase(),
                 ex.getMessage(),
@@ -64,12 +64,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiErrorResponse> handleValidationException(MethodArgumentNotValidException ex, HttpServletRequest request) {
-        Map<String, String> validationErrors = new HashMap<>();
+    public ResponseEntity<ApiErrorResponse> handleValidationException(final MethodArgumentNotValidException ex, final HttpServletRequest request) {
+        final Map<String, String> validationErrors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 validationErrors.put(error.getField(), error.getDefaultMessage()));
 
-        ApiErrorResponse response = ApiErrorResponse.ofValidation(
+        final ApiErrorResponse response = ApiErrorResponse.ofValidation(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 "Validation failed for one or more fields",
@@ -82,8 +82,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
-        ApiErrorResponse response = ApiErrorResponse.of(
+    public ResponseEntity<ApiErrorResponse> handleGenericException(final Exception ex, final HttpServletRequest request) {
+        final ApiErrorResponse response = ApiErrorResponse.of(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
                 "An unexpected internal error occurred. Please contact support.",
@@ -95,11 +95,11 @@ public class GlobalExceptionHandler {
     }
 
     // private helper: Used to sanitize the Exception message from the UUID and still keep it explanatory
-    private String sanitizeExceptionMessage(String message) {
+    private String sanitizeExceptionMessage(final String message) {
         if (message == null || message.isBlank()) {
             return "The requested resource was not found";
         }
-        String sanitized = UUID_PATTERN.matcher(message)
+        final String sanitized = UUID_PATTERN.matcher(message)
                 .replaceAll("")
                 .replace("with ID:", "")
                 .replace("with ID", "")

@@ -26,30 +26,30 @@ public class VenueServiceImpl implements VenueService {
 
     @Override
     @Transactional
-    public VenueResponseDTO createVenue(VenueRequestDTO request) {
-        Building building = buildingService.getBuildingEntityById(request.buildingId());
+    public VenueResponseDTO createVenue(final VenueRequestDTO request) {
+        final Building building = buildingService.getBuildingEntityById(request.buildingId());
 
-        Venue venue = venueMapper.toEntity(request);
+        final Venue venue = venueMapper.toEntity(request);
         venue.setBuilding(building);
-        Venue savedVenue = venueRepository.save(venue);
+        final Venue savedVenue = venueRepository.save(venue);
 
         return venueMapper.toResponseDTO(savedVenue);
     }
 
     @Override
-    public VenueResponseDTO getVenueById(UUID venueId) {
+    public VenueResponseDTO getVenueById(final UUID venueId) {
         return venueMapper.toResponseDTO(getVenueEntityById(venueId));
     }
 
     @Override
-    public Venue getVenueEntityById(UUID venueId) {
+    public Venue getVenueEntityById(final UUID venueId) {
         return venueRepository.findByIdAndDeletedFalse(venueId)
                 .orElseThrow(() -> new ResourceNotFoundException("Active venue not found with ID: " + venueId));
     }
 
     @Override
-    public List<VenueResponseDTO> getAllVenues(boolean includeDeleted) {
-        List<Venue> venues = includeDeleted
+    public List<VenueResponseDTO> getAllVenues(final boolean includeDeleted) {
+        final List<Venue> venues = includeDeleted
                 ? venueRepository.findAll()
                 : venueRepository.findAllByDeletedFalse();
 
@@ -60,8 +60,8 @@ public class VenueServiceImpl implements VenueService {
 
     @Override
     @Transactional
-    public VenueResponseDTO updateVenue(UUID venueId, VenueRequestDTO request) {
-        Venue venue = getVenueEntityById(venueId);
+    public VenueResponseDTO updateVenue(final UUID venueId, final VenueRequestDTO request) {
+        final Venue venue = getVenueEntityById(venueId);
 
         validateBuildingUnchanged(venue.getBuilding().getId(), request.buildingId());
         venueMapper.updateVenueFromDto(request, venue);
@@ -71,22 +71,22 @@ public class VenueServiceImpl implements VenueService {
 
     @Override
     @Transactional
-    public void softDeleteVenue(UUID venueId) {
-        Venue venue = getVenueEntityById(venueId);
+    public void softDeleteVenue(final UUID venueId) {
+        final Venue venue = getVenueEntityById(venueId);
         venue.setDeleted(true);
     }
 
     @Override
     @Transactional
-    public void hardDeleteVenue(UUID venueId) {
+    public void hardDeleteVenue(final UUID venueId) {
         validateVenueExists(venueId);
         venueRepository.deleteById(venueId);
     }
 
     @Override
     @Transactional
-    public VenueResponseDTO restoreVenue(UUID venueId) {
-        Venue venue = venueRepository.findById(venueId)
+    public VenueResponseDTO restoreVenue(final UUID venueId) {
+        final Venue venue = venueRepository.findById(venueId)
                 .orElseThrow(() -> new ResourceNotFoundException("Venue not found with ID: " + venueId));
 
         if (!venue.isDeleted()) {
@@ -97,14 +97,14 @@ public class VenueServiceImpl implements VenueService {
         return venueMapper.toResponseDTO(venue);
     }
 
-    private void validateVenueExists(UUID venueId) {
+    private void validateVenueExists(final UUID venueId) {
         if (!venueRepository.existsById(venueId)) {
             throw new ResourceNotFoundException("Venue not found");
         }
     }
 
     // Helper validation methods
-    private void validateBuildingUnchanged(UUID currentBuildingId, UUID requestedBuildingId) {
+    private void validateBuildingUnchanged(final UUID currentBuildingId, final UUID requestedBuildingId) {
         if (!currentBuildingId.equals(requestedBuildingId)) {
             throw new BusinessLogicException("Cannot change the building of an existing venue!");
         }

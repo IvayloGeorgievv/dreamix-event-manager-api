@@ -15,5 +15,5 @@ public interface AuthMapper {
     @Mapping(target = "deleted", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "role", ignore = true)
-    User toCustomer(RegisterRequestDTO dto);
+    User toUser(RegisterRequestDTO dto);
 }

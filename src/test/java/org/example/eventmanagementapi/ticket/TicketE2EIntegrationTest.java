@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 @Transactional
 class TicketE2EIntegrationTest {
 
@@ -54,7 +54,7 @@ class TicketE2EIntegrationTest {
     private AuthService authService;
 
     @Autowired
-    private UserRepository customerRepository;
+    private UserRepository userRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -63,19 +63,19 @@ class TicketE2EIntegrationTest {
     @DisplayName("E2E: Buy Ticket flow -> Updates Event sold count -> Rejects duplicate seat booking")
     void buyTicketFlow_E2E() throws Exception {
         // 1. Arrange DB entities
-        BuildingResponseDTO building = buildingService.createBuilding(
+        final BuildingResponseDTO building = buildingService.createBuilding(
                 new BuildingRequestDTO("Arena Center", "Sofia", "Main Ave 1")
         );
 
-        VenueResponseDTO venue = venueService.createVenue(
+        final VenueResponseDTO venue = venueService.createVenue(
                 new VenueRequestDTO("Hall 1", 50, building.id())
         );
 
-        EventSummaryResponseDTO event = eventService.createEvent(
+        final EventSummaryResponseDTO event = eventService.createEvent(
                 new EventRequestDTO("Rock Odyssey", BigDecimal.valueOf(75.0), LocalDateTime.now().plusDays(10), venue.id(), List.of())
         );
 
-        // Register customer via AuthService
+        // Register user via AuthService
         authService.register(
                 new RegisterRequestDTO(
                         "Petar",
@@ -85,10 +85,10 @@ class TicketE2EIntegrationTest {
                 )
         );
 
-        User customer = customerRepository.findByEmailAndDeletedFalse("petar.e2e@example.com")
+        final User user = userRepository.findByEmailAndDeletedFalse("petar.e2e@example.com")
                 .orElseThrow();
 
-        TicketRequestDTO ticketRequest = new TicketRequestDTO(customer.getId(), event.id(), "A-1");
+        final TicketRequestDTO ticketRequest = new TicketRequestDTO(user.getId(), event.id(), "A-1");
 
         // 2. Buy ticket via HTTP POST
         mockMvc.perform(post("/api/tickets")
@@ -98,7 +98,7 @@ class TicketE2EIntegrationTest {
                 .andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.seatNumber").value("A-1"))
                 .andExpect(jsonPath("$.eventTitle").value("Rock Odyssey"))
-                .andExpect(jsonPath("$.customerName").value("Petar Dimitrov"))
+                .andExpect(jsonPath("$.userName").value("Petar Dimitrov"))
                 .andExpect(jsonPath("$.pricePaid").value(75.0));
 
         // Try to again buy the same place -> 409 Conflict

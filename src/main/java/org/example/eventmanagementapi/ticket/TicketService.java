@@ -1,7 +1,7 @@
 package org.example.eventmanagementapi.ticket;
 
 import org.example.eventmanagementapi.event.EventDeletedEvent;
-import org.example.eventmanagementapi.ticket.dto.CustomerTicketResponseDTO;
+import org.example.eventmanagementapi.ticket.dto.UserTicketResponseDTO;
 import org.example.eventmanagementapi.ticket.dto.TicketRequestDTO;
 import org.example.eventmanagementapi.ticket.dto.TicketResponseDTO;
 
@@ -14,7 +14,7 @@ public interface TicketService {
 
     TicketResponseDTO getTicketById(UUID ticketId);
 
-    List<CustomerTicketResponseDTO> getTicketsByCustomer(UUID customerId);
+    List<UserTicketResponseDTO> getTicketsByUser(UUID userId);
 
     void cancelTicket(UUID ticketId);
 

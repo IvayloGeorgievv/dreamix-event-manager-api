@@ -22,29 +22,29 @@ public class BuildingServiceImpl implements BuildingService {
 
     @Override
     @Transactional
-    public BuildingResponseDTO createBuilding(BuildingRequestDTO request) {
-        Building building = buildingMapper.toEntity(request);
-        Building savedBuilding = buildingRepository.save(building);
+    public BuildingResponseDTO createBuilding(final BuildingRequestDTO request) {
+        final Building building = buildingMapper.toEntity(request);
+        final Building savedBuilding = buildingRepository.save(building);
         return buildingMapper.toResponseDTO(savedBuilding);
     }
 
 
     @Override
-    public BuildingResponseDTO getBuildingById(UUID buildingId) {
+    public BuildingResponseDTO getBuildingById(final UUID buildingId) {
         return buildingMapper.toResponseDTO(getBuildingEntityById(buildingId));
     }
 
 
     @Override
-    public Building getBuildingEntityById(UUID buildingId) {
+    public Building getBuildingEntityById(final UUID buildingId) {
         return buildingRepository.findByIdAndDeletedFalse(buildingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Active building not found with ID: " + buildingId));
     }
 
 
     @Override
-    public List<BuildingResponseDTO> getAllBuildings(boolean includeDeleted) {
-        List<Building> buildings = includeDeleted
+    public List<BuildingResponseDTO> getAllBuildings(final boolean includeDeleted) {
+        final List<Building> buildings = includeDeleted
                 ? buildingRepository.findAll()
                 : buildingRepository.findAllByDeletedFalse();
 
@@ -56,8 +56,8 @@ public class BuildingServiceImpl implements BuildingService {
 
     @Override
     @Transactional
-    public BuildingResponseDTO updateBuilding(UUID buildingId, BuildingRequestDTO request) {
-        Building building = getBuildingEntityById(buildingId);
+    public BuildingResponseDTO updateBuilding(final UUID buildingId, final BuildingRequestDTO request) {
+        final Building building = getBuildingEntityById(buildingId);
         buildingMapper.updateBuildingFromDto(request, building);
         return buildingMapper.toResponseDTO(building);
     }
@@ -65,15 +65,15 @@ public class BuildingServiceImpl implements BuildingService {
 
     @Override
     @Transactional
-    public void softDeleteBuilding(UUID buildingId) {
-        Building building = getBuildingEntityById(buildingId);
+    public void softDeleteBuilding(final UUID buildingId) {
+        final Building building = getBuildingEntityById(buildingId);
         building.setDeleted(true);
     }
 
 
     @Override
     @Transactional
-    public void hardDeleteBuilding(UUID buildingId) {
+    public void hardDeleteBuilding(final UUID buildingId) {
         validateBuildingExists(buildingId);
         buildingRepository.deleteById(buildingId);
     }
@@ -81,8 +81,8 @@ public class BuildingServiceImpl implements BuildingService {
 
     @Override
     @Transactional
-    public BuildingResponseDTO restoreBuilding(UUID buildingId) {
-        Building building = buildingRepository.findById(buildingId)
+    public BuildingResponseDTO restoreBuilding(final UUID buildingId) {
+        final Building building = buildingRepository.findById(buildingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Building not found with ID: " + buildingId));
 
         if (!building.isDeleted()) {
@@ -94,7 +94,7 @@ public class BuildingServiceImpl implements BuildingService {
     }
 
     //Helper methods
-    private void validateBuildingExists(UUID buildingId) {
+    private void validateBuildingExists(final UUID buildingId) {
         if (!buildingRepository.existsById(buildingId)) {
             throw new ResourceNotFoundException("Building not found with ID: " + buildingId);
         }

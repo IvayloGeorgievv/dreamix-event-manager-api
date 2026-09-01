@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.example.eventmanagementapi.auth.RefreshTokenRedisService;
+import org.example.eventmanagementapi.auth.RefreshTokenService;
 import org.example.eventmanagementapi.common.security.jwt.JwtService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,7 +28,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String BEARER_PREFIX = "Bearer ";
     private final JwtService jwtService;
-    private final RefreshTokenRedisService refreshTokenRedisService;
+    private final RefreshTokenService refreshTokenRedisService;
 
     // Intercepts every incoming HTTP request to extract, validate the Bearer JWT, and set authentication in context
     @Override

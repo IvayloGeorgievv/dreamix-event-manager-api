@@ -9,7 +9,7 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 interface UserMapper {
 
-    UserResponseDTO toResponseDTO(User customer);
+    UserResponseDTO toResponseDTO(User user);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "version", ignore = true)
@@ -17,5 +17,5 @@ interface UserMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "role", ignore = true)
-    void updateCustomerFromDto(UserRequestDTO customerRequestDTO, @MappingTarget User customer);
+    void updateUserFromDto(UserRequestDTO userRequestDTO, @MappingTarget User user);
 }

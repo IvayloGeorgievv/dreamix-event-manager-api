@@ -24,27 +24,27 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     private static final String LOG_PREFIX = "<--- {}";
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(@NonNull final HttpServletRequest request, @NonNull final HttpServletResponse response, final FilterChain filterChain)
             throws ServletException, IOException {
 
-        ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request, 1024 * 1024); // 1MB cache limit
-        String correlationId = UUID.randomUUID().toString().substring(0, 8);
-        long startTime = System.currentTimeMillis();
+        final ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request, 1024 * 1024); // 1MB cache limit
+        final String correlationId = UUID.randomUUID().toString().substring(0, 8);
+        final long startTime = System.currentTimeMillis();
 
-        String uri = request.getRequestURI();
-        String queryString = request.getQueryString() != null ? "?" + request.getQueryString() : "";
-        String method = request.getMethod();
+        final String uri = request.getRequestURI();
+        final String queryString = request.getQueryString() != null ? "?" + request.getQueryString() : "";
+        final String method = request.getMethod();
 
         try {
             filterChain.doFilter(wrappedRequest, response);
         } finally {
-            long duration = System.currentTimeMillis() - startTime;
-            int status = response.getStatus();
+            final long duration = System.currentTimeMillis() - startTime;
+            final int status = response.getStatus();
 
-            // Извлича входните параметри от JSON Request Body
-            String requestBody = getRequestBody(wrappedRequest);
+            // Gets the Input params from JSON Request Body
+            final String requestBody = getRequestBody(wrappedRequest);
 
-            String logMessage = String.format(
+            final String logMessage = String.format(
                     "[Trace: %s] HTTP %s %s%s | Input Body: %s | Status: %d | Time: %dms",
                     correlationId,
                     method,
@@ -65,8 +65,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         }
     }
 
-    private String getRequestBody(ContentCachingRequestWrapper request) {
-        byte[] buf = request.getContentAsByteArray();
+    private String getRequestBody(final ContentCachingRequestWrapper request) {
+        final byte[] buf = request.getContentAsByteArray();
         if (buf.length > 0) {
             return new String(buf, 0, Math.min(buf.length, 1000), StandardCharsets.UTF_8)
                     .replaceAll("[\\r\\n]+", "")
@@ -76,8 +76,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
+    protected boolean shouldNotFilter(final HttpServletRequest request) {
+        final String path = request.getRequestURI();
         return path.contains("/swagger-ui") || path.contains("/v3/api-docs") || path.contains("/favicon.ico");
     }
 }

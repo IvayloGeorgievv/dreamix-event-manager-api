@@ -9,10 +9,13 @@ import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
-public class RefreshTokenServiceRedisImpl implements RefreshTokenRedisService {
+public class RefreshTokenServiceRedisImpl implements RefreshTokenService {
 
-    private static final String REDIS_PREFIX = "refresh_token:";
-    private static final String VERSION_PREFIX = "user_token_version:";
+    @Value("${spring.data.redis.refresh-token.prefix}")
+    private String redisPrefix;
+
+    @Value("${spring.data.redis.refresh-token.version-prefix}")
+    private String versionPrefix;
 
     @Value("${application.security.jwt.refresh-token.expiration}")
     private long refreshExpiration;
@@ -20,26 +23,26 @@ public class RefreshTokenServiceRedisImpl implements RefreshTokenRedisService {
     private final StringRedisTemplate redisTemplate;
 
     @Override
-    public void storeRefreshToken(String email, String refreshToken) {
-        String key = REDIS_PREFIX + email;
+    public void storeRefreshToken(final String email, final String refreshToken) {
+        final String key = redisPrefix + email;
         redisTemplate.opsForValue().set(key, refreshToken, Duration.ofMillis(refreshExpiration));
     }
 
     @Override
-    public boolean isRefreshTokenValid(String email, String refreshToken) {
-        String storedToken = redisTemplate.opsForValue().get(REDIS_PREFIX + email);
+    public boolean isRefreshTokenValid(final String email, final String refreshToken) {
+        final String storedToken = redisTemplate.opsForValue().get(redisPrefix + email);
         return storedToken != null && storedToken.equals(refreshToken);
     }
 
     @Override
-    public void revokeRefreshToken(String email) {
-        redisTemplate.delete(REDIS_PREFIX + email);
+    public void revokeRefreshToken(final String email) {
+        redisTemplate.delete(redisPrefix + email);
     }
 
     @Override
-    public int getOrInitializeUserTokenVersion(String email) {
-        String key = VERSION_PREFIX + email;
-        String currentVersion = redisTemplate.opsForValue().get(key);
+    public int getOrInitializeUserTokenVersion(final String email) {
+        final String key = versionPrefix + email;
+        final String currentVersion = redisTemplate.opsForValue().get(key);
 
         if(currentVersion == null) {
             redisTemplate.opsForValue().set(key, "1");
@@ -49,9 +52,9 @@ public class RefreshTokenServiceRedisImpl implements RefreshTokenRedisService {
     }
 
     @Override
-    public boolean isTokenVersionValid(String email, int tokenVersion) {
-        String key = VERSION_PREFIX + email;
-        String currentVersion = redisTemplate.opsForValue().get(key);
+    public boolean isTokenVersionValid(final String email, final int tokenVersion) {
+        final String key = versionPrefix + email;
+        final String currentVersion = redisTemplate.opsForValue().get(key);
 
         if(currentVersion == null) {
             redisTemplate.opsForValue().set(key, "1");
@@ -61,8 +64,8 @@ public class RefreshTokenServiceRedisImpl implements RefreshTokenRedisService {
     }
 
     @Override
-    public void incrementUserTokenVersion(String email) {
-        String key = VERSION_PREFIX + email;
+    public void incrementUserTokenVersion(final String email) {
+        final String key = versionPrefix + email;
         redisTemplate.opsForValue().increment(key);
 
         revokeRefreshToken(email);

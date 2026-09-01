@@ -1,6 +1,6 @@
 package org.example.eventmanagementapi.auth;
 
-public interface RefreshTokenRedisService {
+public interface RefreshTokenService {
 
     void storeRefreshToken(String email, String refreshToken);
 

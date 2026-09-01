@@ -47,7 +47,7 @@ class TicketServiceTest {
     private TicketRepository ticketRepository;
 
     @Mock
-    private UserService customerService;
+    private UserService userService;
 
     @Mock
     private EventService eventService;
@@ -59,32 +59,32 @@ class TicketServiceTest {
     private TicketServiceImpl ticketService;
 
     // Field-Level to be reachable for each Test
-    private UUID customerId;
+    private UUID userId;
     private UUID eventId;
     private UUID ticketId;
     private String seatNumber;
     private TicketRequestDTO ticketRequestDTO;
-    private User customer;
+    private User user;
     private Event event;
 
     @BeforeEach
     void setUp() {
         //Arrange
-        customerId = UUID.randomUUID();
+        userId = UUID.randomUUID();
         eventId = UUID.randomUUID();
         ticketId = UUID.randomUUID();
         seatNumber = "A-12";
 
-        ticketRequestDTO = new TicketRequestDTO(customerId, eventId, seatNumber);
+        ticketRequestDTO = new TicketRequestDTO(userId, eventId, seatNumber);
 
-        customer = new User(
+        user = new User(
                 "John",
                 "Doe",
                 "john@gmail.com",
                 "password123!",
-                Role.ROLE_CUSTOMER
+                Role.ROLE_USER
         );
-        ReflectionTestUtils.setField(customer, "id", customerId);
+        ReflectionTestUtils.setField(user, "id", userId);
 
         Building building = new Building(
                 "Main Hall",
@@ -114,10 +114,10 @@ class TicketServiceTest {
 
         //Arrange for current Test
 
-        Ticket savedTicket = new Ticket(customer, event, seatNumber);
+        Ticket savedTicket = new Ticket(user, event, seatNumber);
         ReflectionTestUtils.setField(savedTicket, "id", ticketId);
 
-        when(customerService.getCustomerEntityById(customerId)).thenReturn(customer);
+        when(userService.getUserEntityById(userId)).thenReturn(user);
         when(eventService.getEventEntityById(eventId)).thenReturn(event);
         when(ticketRepository.existsByEventIdAndSeatNumberAndDeletedFalse(eventId, seatNumber)).thenReturn(false);
         when(ticketRepository.save(any(Ticket.class))).thenReturn(savedTicket);
@@ -129,9 +129,9 @@ class TicketServiceTest {
         //Assert
         assertNotNull(actualResponse);
         assertEquals(ticketId, actualResponse.id());
-        assertEquals(customerId, actualResponse.customerId());
+        assertEquals(userId, actualResponse.userId());
         assertEquals(eventId, actualResponse.eventId());
-        assertEquals("John Doe", actualResponse.customerName());
+        assertEquals("John Doe", actualResponse.userName());
         assertEquals("Rock Concert", actualResponse.eventTitle());
         assertEquals("A-12", actualResponse.seatNumber());
         assertEquals(BigDecimal.valueOf(50.0), actualResponse.pricePaid());
@@ -144,7 +144,7 @@ class TicketServiceTest {
     @DisplayName("Throw a BusinessLogicException when seat is already booked")
     void buyTicket_ShouldThrowException_WhenSeatAlreadyBooked() {
 
-        when(customerService.getCustomerEntityById(customerId)).thenReturn(customer);
+        when(userService.getUserEntityById(userId)).thenReturn(user);
         when(eventService.getEventEntityById(eventId)).thenReturn(event);
         when(ticketRepository.existsByEventIdAndSeatNumberAndDeletedFalse(eventId, seatNumber)).thenReturn(true);
 
@@ -167,8 +167,8 @@ class TicketServiceTest {
 
         //Arrange for current Test
 
-        Ticket ticket1 = new Ticket(customer, event, "B-01");
-        Ticket ticket2 = new Ticket(customer, event, "B-02");
+        Ticket ticket1 = new Ticket(user, event, "B-01");
+        Ticket ticket2 = new Ticket(user, event, "B-02");
         List<Ticket> activeTickets = List.of(ticket1, ticket2);
 
         when(ticketRepository.findByEventIdAndDeletedFalse(eventId)).thenReturn(activeTickets);
@@ -189,11 +189,11 @@ class TicketServiceTest {
     @DisplayName("Successfully purchase ticket for various seat formats")
     void buyTicket_ShouldSucceed_ForDifferentSeatNumbers(String candidateSeat) {
         // Arrange
-        TicketRequestDTO request = new TicketRequestDTO(customerId, eventId, candidateSeat);
-        Ticket candidateTicket = new Ticket(customer, event, candidateSeat);
+        TicketRequestDTO request = new TicketRequestDTO(userId, eventId, candidateSeat);
+        Ticket candidateTicket = new Ticket(user, event, candidateSeat);
         ReflectionTestUtils.setField(candidateTicket, "id", UUID.randomUUID());
 
-        when(customerService.getCustomerEntityById(customerId)).thenReturn(customer);
+        when(userService.getUserEntityById(userId)).thenReturn(user);
         when(eventService.getEventEntityById(eventId)).thenReturn(event);
         when(ticketRepository.existsByEventIdAndSeatNumberAndDeletedFalse(eventId, candidateSeat)).thenReturn(false);
         when(ticketRepository.save(any(Ticket.class))).thenReturn(candidateTicket);
@@ -212,7 +212,7 @@ class TicketServiceTest {
     void buyTicket_ShouldThrowException_WhenPastEvent() {
         event.setDateAndTime(LocalDateTime.now().minusDays(5));
 
-        when(customerService.getCustomerEntityById(customerId)).thenReturn(customer);
+        when(userService.getUserEntityById(userId)).thenReturn(user);
         when(eventService.getEventEntityById(eventId)).thenReturn(event);
 
 
@@ -231,7 +231,7 @@ class TicketServiceTest {
     @Test
     @DisplayName("Cancel Ticket decrements Tickets Sold count in Event")
     void cancelTicket_ShouldDecrementSoldTickets() {
-        Ticket ticket = new Ticket(customer, event, seatNumber);
+        Ticket ticket = new Ticket(user, event, seatNumber);
         ReflectionTestUtils.setField(ticket, "id", ticketId);
         event.incrementSoldTickets();
 
@@ -247,7 +247,7 @@ class TicketServiceTest {
     @Test
     @DisplayName("Throw BusinessLogicException when restoring a Ticket whose seat is tacken")
     void restoreTicket_ShouldThrowException_WhenSeatIsRebooked() {
-        Ticket ticket = new Ticket(customer, event, seatNumber);
+        Ticket ticket = new Ticket(user, event, seatNumber);
         ReflectionTestUtils.setField(ticket, "id", ticketId);
         ticket.setDeleted(true);
 

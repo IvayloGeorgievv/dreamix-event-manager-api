@@ -7,7 +7,7 @@ public record AuthResponseDTO(
         String refreshToken,
         TokenType tokenType
 ) {
-    public AuthResponseDTO(String accessToken, String refreshToken) {
+    public AuthResponseDTO(final String accessToken, final String refreshToken) {
         this(accessToken, refreshToken, TokenType.BEARER);
     }
 }

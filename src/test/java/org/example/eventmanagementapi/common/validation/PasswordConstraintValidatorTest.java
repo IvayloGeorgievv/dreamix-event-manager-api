@@ -9,11 +9,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class PasswordConstraintValidatorTest {
 
-    private PasswordConstraintValidator validator;
+    private ValidPassword.PasswordConstraintValidator validator;
 
     @BeforeEach
     void setUp() {
-        validator = new PasswordConstraintValidator();
+        validator = new ValidPassword.PasswordConstraintValidator();
     }
 
     @ParameterizedTest
@@ -23,7 +23,7 @@ class PasswordConstraintValidatorTest {
             "Complex#Password9"
     })
     @DisplayName("Should return true for valid complex passwords")
-    void shouldAcceptValidPasswords(String password) {
+    void shouldAcceptValidPasswords(final String password) {
         assertThat(validator.isValid(password, null)).isTrue();
     }
 
@@ -36,7 +36,7 @@ class PasswordConstraintValidatorTest {
             "NoSpecialChar1" // Missing special char
     })
     @DisplayName("Should return false for passwords not meeting strength criteria")
-    void shouldRejectWeakPasswords(String password) {
+    void shouldRejectWeakPasswords(final String password) {
         assertThat(validator.isValid(password, null)).isFalse();
     }
 }

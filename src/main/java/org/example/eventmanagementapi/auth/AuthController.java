@@ -20,22 +20,22 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request) {
+    public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody final RegisterRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
+    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody final LoginRequestDTO request) {
         return ResponseEntity.ok(authService.login(request));
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<AuthResponseDTO> refreshToken(@Valid @RequestBody RefreshTokenDTO request) {
+    public ResponseEntity<AuthResponseDTO> refreshToken(@Valid @RequestBody final RefreshTokenDTO request) {
         return ResponseEntity.ok(authService.refreshToken(request));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal final UserDetails userDetails) {
         authService.logout(userDetails.getUsername());
         return ResponseEntity.noContent().build();
     }

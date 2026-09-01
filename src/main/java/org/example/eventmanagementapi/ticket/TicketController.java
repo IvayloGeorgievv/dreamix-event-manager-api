@@ -1,6 +1,6 @@
 package org.example.eventmanagementapi.ticket;
 
-import org.example.eventmanagementapi.ticket.dto.CustomerTicketResponseDTO;
+import org.example.eventmanagementapi.ticket.dto.UserTicketResponseDTO;
 import org.example.eventmanagementapi.ticket.dto.TicketRequestDTO;
 import org.example.eventmanagementapi.ticket.dto.TicketResponseDTO;
 import org.springframework.web.bind.annotation.*;
@@ -30,9 +30,9 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getTicketById(id));
     }
 
-    @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<CustomerTicketResponseDTO>> getTicketsByCustomerId(@PathVariable UUID customerId) {
-        return ResponseEntity.ok(ticketService.getTicketsByCustomer(customerId));
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<UserTicketResponseDTO>> getTicketsByUserId(@PathVariable UUID userId) {
+        return ResponseEntity.ok(ticketService.getTicketsByUser(userId));
     }
 
     @DeleteMapping("/{id}")
