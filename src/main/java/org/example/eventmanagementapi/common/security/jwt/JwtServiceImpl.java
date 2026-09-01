@@ -21,8 +21,11 @@ import java.util.function.Function;
 @Service
 public class JwtServiceImpl implements JwtService {
 
-    private static final String ROLES_CLAIM = "roles";
-    private static final String VERSION_CLAIM = "token_version";
+    @Value("${application.security.jwt.roles-claim}")
+    private String rolesClaim;
+
+    @Value("${application.security.jwt.version-claim}")
+    private String versionClaim;
 
     @Value("${application.security.jwt.secret-key}")
     private String secretKey;
@@ -59,8 +62,8 @@ public class JwtServiceImpl implements JwtService {
                 .issuer(issuer)
                 .audience().add(audience).and()
                 .subject(userDetails.getUsername())
-                .claim(ROLES_CLAIM, roles)
-                .claim(VERSION_CLAIM, tokenVersion)
+                .claim(rolesClaim, roles)
+                .claim(versionClaim, tokenVersion)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(expirationMillis, ChronoUnit.MILLIS)))
                 .signWith(getSignInKey(), Jwts.SIG.HS256)
@@ -76,7 +79,7 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public List<String> extractRoles(final String token) {
         return extractClaim(token, claims -> {
-            final List<?> roles = claims.get(ROLES_CLAIM, List.class);
+            final List<?> roles = claims.get(rolesClaim, List.class);
             if (roles == null) {
                 return Collections.emptyList();
             }
@@ -88,7 +91,7 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public Integer extractTokenVersion(final String token) {
-        return extractClaim(token, claims -> claims.get(VERSION_CLAIM, Integer.class));
+        return extractClaim(token, claims -> claims.get(versionClaim, Integer.class));
     }
 
     // Generic claim extractor that parses the token claims
