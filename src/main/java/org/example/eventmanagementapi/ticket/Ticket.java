@@ -35,7 +35,7 @@ public class Ticket extends BaseEntity {
     @Column(name = "seat_number", nullable = false, length = 50)
     private String seatNumber;
 
-    @Column(name = "price_paid", nullable = false, updatable = false, precision = 10, scale = 2)
+    @Column(name = "price_paid", nullable = false, precision = 10, scale = 2)
     private BigDecimal pricePaid;
 
     public Ticket(User user, Event event, String seatNumber) {
@@ -43,5 +43,12 @@ public class Ticket extends BaseEntity {
         this.event = event;
         this.seatNumber = seatNumber;
         this.pricePaid = event.getBasePrice();
+    }
+
+    public Ticket(User user, Event event, String seatNumber, BigDecimal pricePaid) {
+        this.user = user;
+        this.event = event;
+        this.seatNumber = seatNumber;
+        this.pricePaid = pricePaid;
     }
 }

@@ -2,8 +2,8 @@ package org.example.eventmanagementapi.venue;
 
 import org.example.eventmanagementapi.venue.dto.VenueRequestDTO;
 import org.example.eventmanagementapi.venue.dto.VenueResponseDTO;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
 public interface VenueService {
@@ -14,7 +14,7 @@ public interface VenueService {
 
     Venue getVenueEntityById(UUID venueId);
 
-    List<VenueResponseDTO> getAllVenues(boolean includeDeleted);
+    Page<VenueResponseDTO> getVenues(String search, boolean includeDeleted, Pageable pageable);
 
     VenueResponseDTO updateVenue(UUID venueId, VenueRequestDTO request);
 

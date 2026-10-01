@@ -1,13 +1,15 @@
 package org.example.eventmanagementapi.auth.dto;
 
-import org.example.eventmanagementapi.auth.TokenType;
+import org.example.eventmanagementapi.user.Role;
+import java.util.UUID;
 
 public record AuthResponseDTO(
         String accessToken,
         String refreshToken,
-        TokenType tokenType
+        UUID id,
+        String email,
+        String firstName,
+        String lastName,
+        Role role
 ) {
-    public AuthResponseDTO(final String accessToken, final String refreshToken) {
-        this(accessToken, refreshToken, TokenType.BEARER);
-    }
 }

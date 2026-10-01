@@ -4,5 +4,6 @@ import java.util.UUID;
 
 public record PerformerResponseDTO(
         UUID id,
-        String name
+        String name,
+        boolean deleted
 ) {}

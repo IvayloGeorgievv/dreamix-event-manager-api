@@ -2,6 +2,10 @@ package org.example.eventmanagementapi.building;
 
 import org.example.eventmanagementapi.building.dto.BuildingRequestDTO;
 import org.example.eventmanagementapi.building.dto.BuildingResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,9 +34,12 @@ public class BuildingController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BuildingResponseDTO>> getAllBuildings(
-            @RequestParam(name = "includeDeleted", defaultValue = "false") boolean includeDeleted) {
-        return ResponseEntity.ok(buildingService.getAllBuildings(includeDeleted));
+    public ResponseEntity<Page<BuildingResponseDTO>> getBuildings(
+            @RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "includeDeleted", defaultValue = "false") boolean includeDeleted,
+            @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        return ResponseEntity.ok(buildingService.getBuildings(search, includeDeleted, pageable));
     }
 
     @PutMapping("/{id}")

@@ -2,6 +2,10 @@ package org.example.eventmanagementapi.venue;
 
 import org.example.eventmanagementapi.venue.dto.VenueRequestDTO;
 import org.example.eventmanagementapi.venue.dto.VenueResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,9 +34,12 @@ public class VenueController {
     }
 
     @GetMapping
-    public ResponseEntity<List<VenueResponseDTO>> getAllVenues(
-            @RequestParam(name = "includeDeleted", defaultValue = "false") boolean includeDeleted) {
-        return ResponseEntity.ok(venueService.getAllVenues(includeDeleted));
+    public ResponseEntity<Page<VenueResponseDTO>> getVenues(
+            @RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "includeDeleted", defaultValue = "false") boolean includeDeleted,
+            @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        return ResponseEntity.ok(venueService.getVenues(search, includeDeleted, pageable));
     }
 
     @PutMapping("/{id}")

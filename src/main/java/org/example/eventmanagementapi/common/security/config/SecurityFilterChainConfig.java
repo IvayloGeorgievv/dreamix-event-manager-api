@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.example.eventmanagementapi.common.security.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -27,15 +29,28 @@ public class SecurityFilterChainConfig {
     @SuppressWarnings("java:S4502") // Disabling SonarQube Warning for disabling CSRF
     public SecurityFilterChain securityFilterChain(final HttpSecurity http) {
         http
+                .cors(Customizer.withDefaults())
                 // When we would need CSRF?
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",
+                                "/uploads/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/events/**",
+                                "/api/venues/**",
+                                "/api/buildings/**",
+                                "/api/performers/**",
+                                "/api/tickets/event/*/booked-seats"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/events/**", "/api/venues/**", "/api/buildings/**", "/api/performers/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/events/**", "/api/venues/**", "/api/buildings/**", "/api/performers/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/events/**", "/api/venues/**", "/api/buildings/**", "/api/performers/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/events/**", "/api/venues/**", "/api/buildings/**", "/api/performers/**").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

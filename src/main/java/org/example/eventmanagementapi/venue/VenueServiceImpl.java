@@ -1,16 +1,18 @@
 package org.example.eventmanagementapi.venue;
 
 import lombok.RequiredArgsConstructor;
+import org.example.eventmanagementapi.building.Building;
 import org.example.eventmanagementapi.building.BuildingService;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.common.exception.ResourceNotFoundException;
-import org.example.eventmanagementapi.building.Building;
 import org.example.eventmanagementapi.venue.dto.VenueRequestDTO;
 import org.example.eventmanagementapi.venue.dto.VenueResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -48,14 +50,16 @@ public class VenueServiceImpl implements VenueService {
     }
 
     @Override
-    public List<VenueResponseDTO> getAllVenues(final boolean includeDeleted) {
-        final List<Venue> venues = includeDeleted
-                ? venueRepository.findAll()
-                : venueRepository.findAllByDeletedFalse();
+    public Page<VenueResponseDTO> getVenues(
+            final String search,
+            final boolean includeDeleted,
+            final Pageable pageable
+    ) {
+        final boolean effectiveIncludeDeleted = includeDeleted && isCurrentUserAdmin();
+        final String sanitizedSearch = search != null ? search.trim() : "";
 
-        return venues.stream()
-                .map(venueMapper::toResponseDTO)
-                .toList();
+        return venueRepository.findVenues(sanitizedSearch, effectiveIncludeDeleted, pageable)
+                .map(venueMapper::toResponseDTO);
     }
 
     @Override
@@ -108,5 +112,14 @@ public class VenueServiceImpl implements VenueService {
         if (!currentBuildingId.equals(requestedBuildingId)) {
             throw new BusinessLogicException("Cannot change the building of an existing venue!");
         }
+    }
+
+    private boolean isCurrentUserAdmin() {
+        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 }

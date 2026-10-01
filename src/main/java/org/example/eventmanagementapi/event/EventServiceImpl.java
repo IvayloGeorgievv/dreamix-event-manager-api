@@ -3,18 +3,28 @@ package org.example.eventmanagementapi.event;
 import lombok.RequiredArgsConstructor;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.common.exception.ResourceNotFoundException;
+import org.example.eventmanagementapi.event.dto.EventFilterDTO;
 import org.example.eventmanagementapi.event.dto.EventRequestDTO;
 import org.example.eventmanagementapi.event.dto.EventResponseDTO;
 import org.example.eventmanagementapi.event.dto.EventSummaryResponseDTO;
+import org.example.eventmanagementapi.event.dto.ShowScheduleDTO;
 import org.example.eventmanagementapi.performer.Performer;
-import org.example.eventmanagementapi.venue.Venue;
 import org.example.eventmanagementapi.performer.PerformerService;
+import org.example.eventmanagementapi.venue.Venue;
 import org.example.eventmanagementapi.venue.VenueService;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.HashSet;
@@ -25,15 +35,14 @@ import java.util.UUID;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class EventServiceImpl implements EventService{
+public class EventServiceImpl implements EventService {
+
+    private static final Path EVENT_UPLOADS_DIR = Paths.get("uploads", "events");
 
     private final EventRepository eventRepository;
-
     private final VenueService venueService;
     private final PerformerService performerService;
-
     private final EventMapper eventMapper;
-
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -55,13 +64,12 @@ public class EventServiceImpl implements EventService{
         return eventMapper.toSummaryResponseDTO(savedEvent);
     }
 
-
     @Override
     public EventResponseDTO getEventById(final UUID id) {
         final Event event = getEventEntityById(id);
-        return eventMapper.toResponseDTO(event);
+        final List<ShowScheduleDTO> schedules = getSchedulesForEvent(id);
+        return eventMapper.toResponseDTO(event, schedules);
     }
-
 
     @Override
     public Event getEventEntityById(final UUID id) {
@@ -69,39 +77,51 @@ public class EventServiceImpl implements EventService{
                 .orElseThrow(() -> new ResourceNotFoundException("Active event not found with ID: " + id));
     }
 
-
     @Override
-    public List<EventSummaryResponseDTO> getAllEvents(final boolean includeDeleted) {
-        final List<Event> events = includeDeleted
-                ? eventRepository.findAll()
-                : eventRepository.findAllByDeletedFalse();
+    public Page<EventSummaryResponseDTO> getEvents(final EventFilterDTO filter, final Pageable pageable) {
+        final boolean requestIncludeDeleted = filter != null && Boolean.TRUE.equals(filter.includeDeleted());
+        final boolean effectiveIncludeDeleted = requestIncludeDeleted && isCurrentUserAdmin();
 
-        return events.stream()
-                .map(eventMapper::toSummaryResponseDTO)
-                .toList();
+        return eventRepository.findAll(EventSpecification.withFilter(filter, effectiveIncludeDeleted), pageable)
+                .map(eventMapper::toSummaryResponseDTO);
     }
 
-
     @Override
-    public List<EventSummaryResponseDTO> getUpcomingEvents() {
-        return eventRepository.findUpcoming(LocalDateTime.now(ZoneOffset.UTC)).stream()
-                .map(eventMapper::toSummaryResponseDTO)
-                .toList();
-    }
-
-
-    @Override
-    public List<EventSummaryResponseDTO> getEventsByCity(final String city) {
-        return eventRepository.findByCity(city).stream()
-                .map(eventMapper::toSummaryResponseDTO)
+    public List<ShowScheduleDTO> getSchedulesForEvent(final UUID eventId) {
+        final Event event = getEventEntityById(eventId);
+        return eventRepository.findSchedulesByTitle(event.getTitle(), LocalDateTime.now(ZoneOffset.UTC))
+                .stream()
+                .map(eventMapper::toScheduleDTO)
                 .toList();
     }
 
     @Override
-    public List<EventSummaryResponseDTO> getAvailableEvents() {
-        return eventRepository.findAvailable(LocalDateTime.now(ZoneOffset.UTC)).stream()
-                .map(eventMapper::toSummaryResponseDTO)
-                .toList();
+    @Transactional
+    public EventResponseDTO uploadEventImage(final UUID eventId, final MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessLogicException("Uploaded image file cannot be empty");
+        }
+
+        final Event event = getEventEntityById(eventId);
+
+        try {
+            Files.createDirectories(EVENT_UPLOADS_DIR);
+            final String originalFilename = file.getOriginalFilename();
+            final String extension = (originalFilename != null && originalFilename.contains("."))
+                    ? originalFilename.substring(originalFilename.lastIndexOf('.'))
+                    : ".jpg";
+
+            final String filename = eventId + "-" + UUID.randomUUID().toString().substring(0, 8) + extension;
+            final Path targetPath = EVENT_UPLOADS_DIR.resolve(filename);
+
+            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+            event.setImageUrl("/uploads/events/" + filename);
+            final List<ShowScheduleDTO> schedules = getSchedulesForEvent(eventId);
+            return eventMapper.toResponseDTO(event, schedules);
+        } catch (IOException ex) {
+            throw new BusinessLogicException("Failed to store event image: " + ex.getMessage());
+        }
     }
 
     @Override
@@ -113,11 +133,12 @@ public class EventServiceImpl implements EventService{
             throw new BusinessLogicException("Cannot update event date to a past date");
         }
 
-        Venue venue = venueService.getVenueEntityById(request.venueId());
+        final Venue venue = venueService.getVenueEntityById(request.venueId());
         eventMapper.updateEventFromDto(request, event);
         event.setVenue(venue);
 
-        return eventMapper.toResponseDTO(event);
+        final List<ShowScheduleDTO> schedules = getSchedulesForEvent(id);
+        return eventMapper.toResponseDTO(event, schedules);
     }
 
     @Override
@@ -163,7 +184,6 @@ public class EventServiceImpl implements EventService{
     @Transactional
     public void hardDeleteEvent(final UUID eventId) {
         validateEventExists(eventId);
-
         eventRepository.deleteById(eventId);
     }
 
@@ -178,12 +198,23 @@ public class EventServiceImpl implements EventService{
         }
 
         event.setDeleted(false);
-        return eventMapper.toResponseDTO(event);
+        final List<ShowScheduleDTO> schedules = getSchedulesForEvent(eventId);
+        return eventMapper.toResponseDTO(event, schedules);
     }
 
     private void validateEventExists(final UUID eventId) {
         if (!eventRepository.existsById(eventId)) {
             throw new ResourceNotFoundException("Event not found with ID: " + eventId);
         }
+    }
+
+    private boolean isCurrentUserAdmin() {
+        final org.springframework.security.core.Authentication auth =
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 }

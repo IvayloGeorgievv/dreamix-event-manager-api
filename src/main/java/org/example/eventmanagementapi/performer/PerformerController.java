@@ -1,14 +1,16 @@
 package org.example.eventmanagementapi.performer;
 
-import org.example.eventmanagementapi.performer.dto.PerformerRequestDTO;
-import org.example.eventmanagementapi.performer.dto.PerformerResponseDTO;
-import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.eventmanagementapi.performer.dto.PerformerRequestDTO;
+import org.example.eventmanagementapi.performer.dto.PerformerResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
@@ -30,9 +32,12 @@ public class PerformerController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PerformerResponseDTO>> getAllPerformers(
-            @RequestParam(name = "includeDeleted", defaultValue = "false") boolean includeDeleted) {
-        return ResponseEntity.ok(performerService.getAllPerformers(includeDeleted));
+    public ResponseEntity<Page<PerformerResponseDTO>> getPerformers(
+            @RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "includeDeleted", defaultValue = "false") boolean includeDeleted,
+            @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        return ResponseEntity.ok(performerService.getPerformers(search, includeDeleted, pageable));
     }
 
     @PutMapping("/{id}")

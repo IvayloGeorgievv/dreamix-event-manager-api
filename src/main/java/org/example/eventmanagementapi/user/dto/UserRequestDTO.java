@@ -22,7 +22,7 @@ public record UserRequestDTO(
         String phoneNumber,
 
         @Size(max = 200)
-        String addressLine,
+        String address,
 
         @Size(max = 20)
         String postalCode

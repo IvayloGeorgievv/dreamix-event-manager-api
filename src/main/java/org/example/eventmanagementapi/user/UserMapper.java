@@ -15,7 +15,9 @@ interface UserMapper {
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "role", ignore = true)
+    @Mapping(target = "authorities", ignore = true)
     void updateUserFromDto(UserRequestDTO userRequestDTO, @MappingTarget User user);
 }

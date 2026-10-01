@@ -17,12 +17,19 @@ interface TicketMapper {
     @Mapping(target = "ticketId", source = "id")
     @Mapping(target = "eventId", source = "event.id")
     @Mapping(target = "eventTitle", source = "event.title")
+    @Mapping(target = "eventDateAndTime", source = "event.dateAndTime")
+    @Mapping(target = "venueName", source = "event.venue.name")
+    @Mapping(target = "cityName", source = "event.venue.building.city")
     UserTicketResponseDTO toUserTicketDTO(Ticket ticket);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "event", ignore = true)
+    @Mapping(target = "pricePaid", ignore = true)
     void updateTicketFromDto(TicketRequestDTO ticketRequestDTO, @MappingTarget Ticket ticket);
 
     @Mapping(target = "id", ignore = true)

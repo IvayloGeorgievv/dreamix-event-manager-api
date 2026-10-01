@@ -68,37 +68,37 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponseDTO refreshToken(final RefreshTokenDTO request) {
         final String refreshToken = request.refreshToken();
 
-        // Validate cryptographic signature and expiration timestamp
         if (!jwtService.isTokenValid(refreshToken)) {
             throw new BusinessLogicException("Refresh token has expired! Please log in again.");
         }
 
         final String email = jwtService.extractUsername(refreshToken);
 
-        if(!refreshTokenRedisService.isRefreshTokenValid(email, refreshToken)) {
+        if (!refreshTokenRedisService.isRefreshTokenValid(email, refreshToken)) {
             throw new BusinessLogicException("Invalid or revoked refresh token");
         }
 
         final int currentVersion = refreshTokenRedisService.getOrInitializeUserTokenVersion(email);
         final Integer tokenVersion = jwtService.extractTokenVersion(refreshToken);
 
-        if(tokenVersion == null || tokenVersion != currentVersion) {
+        if (tokenVersion == null || tokenVersion != currentVersion) {
             throw new BusinessLogicException("Token version mismatch. Please log in again.");
         }
 
-        final List<SimpleGrantedAuthority> authorities = jwtService.extractRoles(refreshToken).stream()
-                .map(SimpleGrantedAuthority::new)
-                .toList();
+        final User user = userRepository.findByEmailAndDeletedFalse(email)
+                .orElseThrow(() -> new BusinessLogicException("User account is no longer active."));
 
-        final UserDetails principal = org.springframework.security.core.userdetails.User.builder()
-                .username(email)
-                .password("")
-                .authorities(authorities)
-                .build();
+        final String newAccessToken = jwtService.generateToken(user, currentVersion);
 
-        // Issue a new access token while keeping the same refresh token until it expires
-        final String newAccessToken = jwtService.generateToken(principal, currentVersion);
-        return new AuthResponseDTO(newAccessToken, refreshToken);
+        return new AuthResponseDTO(
+                newAccessToken,
+                refreshToken,
+                user.getId(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getRole()
+        );
     }
 
     @Override
@@ -114,7 +114,15 @@ public class AuthServiceImpl implements AuthService {
 
         refreshTokenRedisService.storeRefreshToken(user.getEmail(), refreshToken);
 
-        return new AuthResponseDTO(jwtToken, refreshToken);
+        return new AuthResponseDTO(
+                jwtToken,
+                refreshToken,
+                user.getId(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getRole()
+        );
     }
 
     // If we introduce admin change of permissions feature ->

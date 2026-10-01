@@ -78,6 +78,10 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(final HttpServletRequest request) {
         final String path = request.getRequestURI();
-        return path.contains("/swagger-ui") || path.contains("/v3/api-docs") || path.contains("/favicon.ico");
+        return path.contains("/swagger-ui")
+                || path.contains("/v3/api-docs")
+                || path.contains("/favicon.ico")
+                || path.startsWith("/uploads/")
+                || path.endsWith("/image");
     }
 }

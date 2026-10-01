@@ -30,6 +30,16 @@ public class Event extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String title;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false, length = 50)
+    private EventCategory category;
+
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
     @Column(name = "base_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal basePrice;
 
@@ -58,8 +68,21 @@ public class Event extends BaseEntity {
     private final List<Ticket> tickets = new ArrayList<>();
 
     public Event(Venue venue, String title, BigDecimal basePrice, LocalDateTime dateAndTime) {
+        this(venue, title, EventCategory.THEATRE, null, null, basePrice, dateAndTime);
+    }
+
+    public Event(Venue venue,
+                 String title,
+                 EventCategory category,
+                 String description,
+                 String imageUrl,
+                 BigDecimal basePrice,
+                 LocalDateTime dateAndTime) {
         this.venue = venue;
         this.title = title;
+        this.category = category;
+        this.description = description;
+        this.imageUrl = imageUrl;
         this.basePrice = basePrice;
         this.dateAndTime = dateAndTime;
     }

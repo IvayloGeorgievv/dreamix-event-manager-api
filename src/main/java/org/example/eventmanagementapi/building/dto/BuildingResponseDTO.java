@@ -6,5 +6,6 @@ public record BuildingResponseDTO(
         UUID id,
         String name,
         String city,
-        String address
+        String address,
+        boolean deleted
 ) {}

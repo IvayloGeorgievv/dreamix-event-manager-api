@@ -81,6 +81,27 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ApiErrorResponse> handleDataIntegrityViolation(
+            final org.springframework.dao.DataIntegrityViolationException ex,
+            final HttpServletRequest request
+    ) {
+        final String message = ex.getMostSpecificCause().getMessage() != null
+                && ex.getMostSpecificCause().getMessage().contains("uk_event_seat")
+                ? "One or more selected seats have already been reserved."
+                : "Database integrity constraint violation occurred.";
+
+        final ApiErrorResponse response = ApiErrorResponse.of(
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                message,
+                request.getRequestURI()
+        );
+
+        log.warn("[Trace: {}] Data integrity conflict at URI [{}]: {}", response.correlationId(), request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGenericException(final Exception ex, final HttpServletRequest request) {
         final ApiErrorResponse response = ApiErrorResponse.of(

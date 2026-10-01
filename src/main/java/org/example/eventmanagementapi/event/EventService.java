@@ -1,8 +1,13 @@
 package org.example.eventmanagementapi.event;
 
+import org.example.eventmanagementapi.event.dto.EventFilterDTO;
 import org.example.eventmanagementapi.event.dto.EventRequestDTO;
 import org.example.eventmanagementapi.event.dto.EventResponseDTO;
 import org.example.eventmanagementapi.event.dto.EventSummaryResponseDTO;
+import org.example.eventmanagementapi.event.dto.ShowScheduleDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -16,13 +21,11 @@ public interface EventService {
 
     Event getEventEntityById(UUID id);
 
-    List<EventSummaryResponseDTO> getAllEvents(boolean includeDeleted);
+    Page<EventSummaryResponseDTO> getEvents(EventFilterDTO filter, Pageable pageable);
 
-    List<EventSummaryResponseDTO> getUpcomingEvents();
+    List<ShowScheduleDTO> getSchedulesForEvent(UUID eventId);
 
-    List<EventSummaryResponseDTO> getEventsByCity(String city);
-
-    List<EventSummaryResponseDTO> getAvailableEvents();
+    EventResponseDTO uploadEventImage(UUID eventId, MultipartFile file);
 
     EventResponseDTO updateEvent(UUID id, EventRequestDTO request);
 

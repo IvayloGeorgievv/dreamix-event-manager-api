@@ -2,8 +2,8 @@ package org.example.eventmanagementapi.performer;
 
 import org.example.eventmanagementapi.performer.dto.PerformerRequestDTO;
 import org.example.eventmanagementapi.performer.dto.PerformerResponseDTO;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
 public interface PerformerService {
@@ -14,7 +14,7 @@ public interface PerformerService {
 
     Performer getPerformerEntityById(UUID performerId);
 
-    List<PerformerResponseDTO> getAllPerformers(boolean includeDeleted);
+    Page<PerformerResponseDTO> getPerformers(String search, boolean includeDeleted, Pageable pageable);
 
     PerformerResponseDTO updatePerformer(UUID performerId, PerformerRequestDTO request);
 

@@ -8,6 +8,6 @@ public record UserResponseDTO(
         String lastName,
         String email,
         String phoneNumber,
-        String addressLine,
+        String address,
         String postalCode
 ) {}

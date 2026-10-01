@@ -36,7 +36,9 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal final UserDetails userDetails) {
-        authService.logout(userDetails.getUsername());
+        if (userDetails != null) {
+            authService.logout(userDetails.getUsername());
+        }
         return ResponseEntity.noContent().build();
     }
 }

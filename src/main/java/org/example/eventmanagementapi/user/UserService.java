@@ -2,8 +2,8 @@ package org.example.eventmanagementapi.user;
 
 import org.example.eventmanagementapi.user.dto.UserRequestDTO;
 import org.example.eventmanagementapi.user.dto.UserResponseDTO;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
 public interface UserService {
@@ -12,9 +12,13 @@ public interface UserService {
 
     User getUserEntityById(UUID userId);
 
-    List<UserResponseDTO> getAllUsers(boolean includeDeleted);
+    User getUserEntityByEmail(String email);
+
+    Page<UserResponseDTO> getUsers(String search, boolean includeDeleted, Pageable pageable);
 
     UserResponseDTO updateUser(UUID userId, UserRequestDTO request);
+
+    UserResponseDTO updateUserRole(UUID userId, Role newRole);
 
     void softDeleteUser(UUID userId);
 

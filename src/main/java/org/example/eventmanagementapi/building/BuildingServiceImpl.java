@@ -5,6 +5,10 @@ import org.example.eventmanagementapi.building.dto.BuildingRequestDTO;
 import org.example.eventmanagementapi.building.dto.BuildingResponseDTO;
 import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.common.exception.ResourceNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,14 +47,16 @@ public class BuildingServiceImpl implements BuildingService {
 
 
     @Override
-    public List<BuildingResponseDTO> getAllBuildings(final boolean includeDeleted) {
-        final List<Building> buildings = includeDeleted
-                ? buildingRepository.findAll()
-                : buildingRepository.findAllByDeletedFalse();
+    public Page<BuildingResponseDTO> getBuildings(
+            final String search,
+            final boolean includeDeleted,
+            final Pageable pageable
+    ) {
+        final boolean effectiveIncludeDeleted = includeDeleted && isCurrentUserAdmin();
+        final String sanitizedSearch = search != null ? search.trim() : "";
 
-        return buildings.stream()
-                .map(buildingMapper::toResponseDTO)
-                .toList();
+        return buildingRepository.findBuildings(sanitizedSearch, effectiveIncludeDeleted, pageable)
+                .map(buildingMapper::toResponseDTO);
     }
 
 
@@ -98,5 +104,14 @@ public class BuildingServiceImpl implements BuildingService {
         if (!buildingRepository.existsById(buildingId)) {
             throw new ResourceNotFoundException("Building not found with ID: " + buildingId);
         }
+    }
+
+    private boolean isCurrentUserAdmin() {
+        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 }

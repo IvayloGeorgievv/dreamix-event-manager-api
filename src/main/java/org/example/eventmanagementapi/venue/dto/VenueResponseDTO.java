@@ -9,6 +9,7 @@ public record VenueResponseDTO(
         UUID buildingId,
         String buildingName,
         String city,
-        String address
+        String address,
+        boolean deleted
 ) {
 }

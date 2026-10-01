@@ -5,10 +5,12 @@ import org.example.eventmanagementapi.common.exception.BusinessLogicException;
 import org.example.eventmanagementapi.common.exception.ResourceNotFoundException;
 import org.example.eventmanagementapi.performer.dto.PerformerRequestDTO;
 import org.example.eventmanagementapi.performer.dto.PerformerResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -39,14 +41,16 @@ public class PerformerServiceImpl implements PerformerService {
     }
 
     @Override
-    public List<PerformerResponseDTO> getAllPerformers(final boolean includeDeleted) {
-        final List<Performer> performers = includeDeleted
-                ? performerRepository.findAll()
-                : performerRepository.findAllByDeletedFalse();
+    public Page<PerformerResponseDTO> getPerformers(
+            final String search,
+            final boolean includeDeleted,
+            final Pageable pageable
+    ) {
+        final boolean effectiveIncludeDeleted = includeDeleted && isCurrentUserAdmin();
+        final String sanitizedSearch = search != null ? search.trim() : "";
 
-        return performers.stream()
-                .map(performerMapper::toResponseDTO)
-                .toList();
+        return performerRepository.findPerformers(sanitizedSearch, effectiveIncludeDeleted, pageable)
+                .map(performerMapper::toResponseDTO);
     }
 
     @Override
@@ -90,5 +94,14 @@ public class PerformerServiceImpl implements PerformerService {
         if (!performerRepository.existsById(performerId)) {
             throw new ResourceNotFoundException("Performer not found");
         }
+    }
+
+    private boolean isCurrentUserAdmin() {
+        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 }
